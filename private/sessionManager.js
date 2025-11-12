@@ -18,7 +18,7 @@ class Session {
     this.PropertiesAllowedToSet = [
       "Name",
       "X", "Y", "VelX", "VelY", "Rot", "VelRot",
-      "Move1", "Move2", "Move1CD", "Move2CD",
+      "Move1", "Move2", "Move1CD", "Move2CD"
     ];
   }
 
