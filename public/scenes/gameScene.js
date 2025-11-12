@@ -9,9 +9,10 @@ import { BoundingBox } from "../classes/boundingBox.js";
 AddOnSceneChangeListener("Game", () => {
   ClearScene("Game");
 
-  let Plr = ThisSession.Plr;
-  AddObject("Game", Plr);
-
   let MainBox = new BoundingBox(-1000, -1000, 2000, 2000);
   AddObject("Game", MainBox);
+
+  let Plr = ThisSession.Plr;
+  Plr.BoundingBox = MainBox;
+  AddObject("Game", Plr);
 });

@@ -21,6 +21,7 @@ export class Player {
     this.Drag = 1.06;
     this.TurnSpeed = 6.5;
     this.LanceLength = 60;
+    this.BoundingBox = null;
 
     this.IsClientControlled = false;
   }
@@ -45,6 +46,25 @@ export class Player {
       }
       if (IsKeyDown("D")) {
         this.VelRot += this.TurnSpeed;
+      }
+    }
+
+    if (this.BoundingBox) {
+      if (this.X < this.BoundingBox.X) {
+        this.X = this.BoundingBox.X;
+        this.VelX *= -1;
+      }
+      if (this.X > this.BoundingBox.X + this.BoundingBox.Width) {
+        this.X = this.BoundingBox.X + this.BoundingBox.Width;
+        this.VelX *= -1;
+      }
+      if (this.Y < this.BoundingBox.Y) {
+        this.Y = this.BoundingBox.Y;
+        this.VelY *= -1;
+      }
+      if (this.Y > this.BoundingBox.Y + this.BoundingBox.Height) {
+        this.Y = this.BoundingBox.Y + this.BoundingBox.Height;
+        this.VelY *= -1;
       }
     }
 

@@ -1,3 +1,5 @@
+const WebSocket = require("ws");
+
 class Session {
   constructor(Id, Socket) {
     this.Id = Id;
@@ -44,21 +46,61 @@ function Start() {
   
   AddAPIListener("CreateSession", (Payload, Socket) => {
     const Id = Math.random().toString(36).substring(2, 15) +
-               Math.random().toString(36).substring(2, 15);
-    const NewSession = { Id, Socket };
+              Math.random().toString(36).substring(2, 15);
+    const NewSession = new Session(Id, Socket);
     Sessions.push(NewSession);
     console.log("Session created:", Id);
+    
+    // Broadcast to other sessions - FIX THE MESSAGE FORMAT
+    for (let Session of Sessions) {
+      if (Session.Socket !== Socket && Session.Socket.readyState === WebSocket.OPEN) {
+        Session.Socket.send(JSON.stringify({
+          ServerPush: {  // Change from API to ServerPush
+            API: "NewSession",
+            Payload: { Id }
+          }
+        }));
+      }
+    }
     return { Id };
   });
 
   AddAPIListener("UpdateSession", (Payload) => {
-    const Session = Sessions.find(s => s.Id === Payload.Id);
+    const Session = Sessions.find(s => s.Id === Payload.SessionId);
     if (Session) {
+      let ChangesMade = {};
       Object.keys(Payload.Updates).forEach((Key) => {
         if (Session.PropertiesAllowedToSet.includes(Key)) {
           Session[Key] = Payload.Updates[Key];
+          ChangesMade[Key] = Payload.Updates[Key];
         }
       });
+      
+      Object.keys(Session.ServerSetProps).forEach((Key) => {
+        Session[Key] = Session.ServerSetProps[Key];
+      });
+      Session.ServerSetProps = {};
+      
+      Object.keys(ChangesMade).forEach((Key) => {
+        if (typeof ChangesMade[Key] === "number") {
+          ChangesMade[Key] = parseFloat(ChangesMade[Key].toFixed(5));
+        }
+      });
+      
+      // Broadcast to other sessions - FIX THE MESSAGE FORMAT AND LOOP CONDITION
+      for (let OtherSession of Sessions) {
+        if (OtherSession.Id !== Session.Id && OtherSession.Socket.readyState === WebSocket.OPEN) {
+          OtherSession.Socket.send(JSON.stringify({
+            ServerPush: {  // Change from API to ServerPush
+              API: "UpdateSessions",
+              Payload: {
+                Id: Session.Id,
+                Updates: ChangesMade
+              }
+            }
+          }));
+        }
+      }
       return { Success: true };
     }
     return { Success: false, Error: "Session not found" };

@@ -1,6 +1,9 @@
 import { Player } from "./classes/player.js";
 import { Camera } from "./render.js";
 import { AddUpdater } from "./updaters.js";
+import { AddObject, RemoveObject } from "./sceneManager.js";
+
+export let SessionsInGame = [];
 
 class Session {
   constructor() {
@@ -84,8 +87,26 @@ class Session {
   }
 
   HandleServerPush(Data) {
-    console.log("Server pushed:", Data);
-    // Example: update UI or internal state
+    let API = Data.API;
+
+    alert(API);
+    
+    if (API == "UpdateSessions") {
+      let SessionId = Data.Payload.Id;
+      if (SessionId == this.Id)
+        return;
+      let Updates = Data.Payload.Updates;
+      for (let Prop in Updates) {
+        this[Prop] = Updates[Prop];
+      }
+    }
+
+    if (API == "NewSession") {
+      SessionsInGame.push(Data.Payload.Id);
+      let NewPlr = new Player();
+      NewPlr.IsClientControlled = false;
+      AddObject("Game", NewPlr);
+    }
   }
 }
 
