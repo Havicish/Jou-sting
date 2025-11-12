@@ -12,3 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
   Canvas.width = window.innerWidth;
   Canvas.height = window.innerHeight;
 });
+
+export function HideCanvas() {
+  Canvas.style.display = "none";
+}
+
+export function ShowCanvas() {
+  Canvas.style.display = "inline";
+}

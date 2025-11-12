@@ -2,6 +2,7 @@ import { RenderAll } from "./render.js";
 import { UpdateAll } from "./updaters.js";
 import { Scenes, SetScene } from "./sceneManager.js";
 import { Mouse } from "./userInputManager.js";
+import { ThisSession } from "../networking.js";
 
 export let GameState = {
   CurrentScene: null,
@@ -16,10 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let LastTime = performance.now();
 function Frame() {
-  let DT = (performance.now() - LastTime) * (60/1000);
+  let DT = (performance.now() - LastTime) / 1000;
   LastTime = performance.now();
 
-  let Objects = Scenes[GameState.CurrentScene.Objects];
+  let Objects = Scenes[GameState.CurrentScene].Objects;
 
   for (let Object of Objects) {
     if (Object.Update) {

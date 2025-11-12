@@ -1,8 +1,10 @@
 const Http = require("http");
 const Fs = require("fs");
 const Path = require("path");
-const SessionManagerStart = require("./sessionManager.js").Start
-const LobbyManagerStart = require("./lobbyManager.js").Start
+const WebSocket = require("ws");
+const SessionManagerStart = require("./sessionManager.js").Start;
+const ServerGameManagerStart = require("./serverGameManager.js").Start;
+const { SessionDisconnected } = require("./sessionManager.js");
 
 const PublicDir = Path.join(__dirname, "../public");
 
@@ -19,13 +21,13 @@ const MimeTypes = {
   ".ico": "image/x-icon"
 };
 
-let APIListeners = {};
+const APIListeners = {};
 
 const Server = Http.createServer((Req, Res) => {
-  if (Req.method == "GET") {
-    let FilePath = Path.join(PublicDir, Req.url == "/" ? "index.html" : Req.url);
-    let Ext = Path.extname(FilePath).toLowerCase();
-    let ContentType = MimeTypes[Ext] || "application/octet-stream";
+  if (Req.method === "GET") {
+    const FilePath = Path.join(PublicDir, Req.url === "/" ? "index.html" : Req.url);
+    const Ext = Path.extname(FilePath).toLowerCase();
+    const ContentType = MimeTypes[Ext] || "application/octet-stream";
 
     Fs.readFile(FilePath, (Err, Data) => {
       if (Err) {
@@ -37,35 +39,43 @@ const Server = Http.createServer((Req, Res) => {
       }
     });
   }
+});
 
-  // Handle API requests
-  if (Req.method == "POST") {
-    for (let API in APIListeners) {
-      if (Req.url.startsWith(API)) {
-        let Body = [];
-        Req.on("data", (Chunk) => {
-          Body.push(Chunk);
-        }).on("end", () => {
-          Body = Buffer.concat(Body).toString();
-          let ResponseData = APIListeners[API](Req, Body);
-          Res.writeHead(200, { "Content-Type": "application/json" });
-          Res.end(JSON.stringify(ResponseData));
-        });
-        return; // Prevent further processing
+const WSS = new WebSocket.Server({ server: Server });
+
+WSS.on("connection", (Socket) => {
+  console.log("Client connected");
+
+  Socket.on("message", (Message) => {
+    try {
+      const Data = JSON.parse(Message);
+      const { API, Payload } = Data;
+
+      if (API && APIListeners[API]) {
+        const Result = APIListeners[API](Payload, Socket);
+        if (Result !== undefined) {
+          Socket.send(JSON.stringify({ API, Result }));
+        }
+      } else {
+        Socket.send(JSON.stringify({ error: "Unknown API" }));
       }
+    } catch (err) {
+      Socket.send(JSON.stringify({ error: "Invalid JSON" }));
     }
-  }
+  });
+
+  Socket.on("close", () => {
+    console.log("Client disconnected");
+    SessionDisconnected(Socket);
+  });
 });
 
-Server.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
-});
+Server.listen(8080, () => console.log("Server running on http://localhost:8080"));
 
 function AddAPIListener(API, Callback) {
   APIListeners[API] = Callback;
 }
 
-module.exports = { AddAPIListener };
-
+module.exports = { AddAPIListener, SessionDisconnected };
+ServerGameManagerStart();
 SessionManagerStart();
-LobbyManagerStart();
