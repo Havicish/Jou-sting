@@ -12,6 +12,6 @@ AddOnSceneChangeListener("Game", () => {
   let Plr = ThisSession.Plr;
   AddObject("Game", Plr);
 
-  let MainBox = new BoundingBox(0, 0, 2000, 2000);
+  let MainBox = new BoundingBox(-1000, -1000, 2000, 2000);
   AddObject("Game", MainBox);
 });

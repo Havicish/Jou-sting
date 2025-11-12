@@ -17,6 +17,10 @@ export class Player {
     this.Move2CD = 0;
     this.MaxMove1CD = 3;
     this.MaxMove2CD = 3;
+    this.Speed = 1400;
+    this.Drag = 1.06;
+    this.TurnSpeed = 6.5;
+    this.LanceLength = 60;
 
     this.IsClientControlled = false;
   }
@@ -25,22 +29,22 @@ export class Player {
     this.X += this.VelX * DT;
     this.Y += this.VelY * DT;
 
-    this.VelX /= Math.pow(1.07, DT * 60);
-    this.VelY /= Math.pow(1.07, DT * 60);
+    this.VelX /= Math.pow(this.Drag, DT * 60);
+    this.VelY /= Math.pow(this.Drag, DT * 60);
 
     this.Rot += this.VelRot * DT;
     this.VelRot = 0;
 
     if (this.IsClientControlled) {
       if (IsKeyDown("W")) {
-        this.VelX += Math.cos(this.Rot) * 200 * DT;
-        this.VelY += Math.sin(this.Rot) * 200 * DT;
+        this.VelX += Math.cos(this.Rot) * this.Speed * DT;
+        this.VelY += Math.sin(this.Rot) * this.Speed * DT;
       }
       if (IsKeyDown("A")) {
-        this.VelRot -= 4.5;
+        this.VelRot -= this.TurnSpeed;
       }
       if (IsKeyDown("D")) {
-        this.VelRot += 4.5;
+        this.VelRot += this.TurnSpeed;
       }
     }
 
@@ -57,7 +61,7 @@ export class Player {
     Ctx.fill();
     Ctx.beginPath();
     Ctx.moveTo(this.X, this.Y);
-    Ctx.lineTo(this.X + Math.cos(this.Rot) * 50, this.Y + Math.sin(this.Rot) * 50);
+    Ctx.lineTo(this.X + Math.cos(this.Rot) * this.LanceLength, this.Y + Math.sin(this.Rot) * this.LanceLength);
     Ctx.strokeStyle = "#fff";
     Ctx.lineWidth = 1.5;
     Ctx.stroke();

@@ -1,5 +1,6 @@
 import { Player } from "./classes/player.js";
 import { Camera } from "./render.js";
+import { AddUpdater } from "./updaters.js";
 
 class Session {
   constructor() {
@@ -13,6 +14,16 @@ class Session {
     this.Plr = new Player();
     this.Plr.IsClientControlled = true;
     Camera.Tracking = this.Plr;
+    Camera.TrackingSpeed = 0.12;
+
+    this.LastPlr = Object.assign({}, this.Plr);
+
+    this.PropertiesAllowedToSet = [
+      "Name",
+      "X", "Y", "VelX", "VelY", "Rot", "VelRot",
+      "Move1", "Move2", "Move1CD", "Move2CD",
+    ];
+    this.FloatAccuracyThreshold = 0.005; // At what point we consider float changes significant enough to send to server
   }
 
   SetUp() {
@@ -83,3 +94,29 @@ export let ThisSession = new Session();
 document.addEventListener("DOMContentLoaded", () => {
   ThisSession.SetUp();
 });
+
+AddUpdater((DT) => {
+  if (ThisSession.Socket && ThisSession.Socket.readyState === WebSocket.OPEN) {
+    let Updates = {};
+
+    ThisSession.PropertiesAllowedToSet.forEach((Prop) => {
+      const CurrentValue = ThisSession.Plr[Prop];
+      const LastValue = ThisSession.LastPlr[Prop];
+
+      if (typeof CurrentValue === "number") {
+        if (Math.abs(CurrentValue - LastValue) > ThisSession.FloatAccuracyThreshold) {
+          Updates[Prop] = CurrentValue;
+          ThisSession.LastPlr[Prop] = CurrentValue;
+        }
+      } else if (CurrentValue !== LastValue) {
+        Updates[Prop] = CurrentValue;
+        ThisSession.LastPlr[Prop] = CurrentValue;
+      }
+    });
+
+    if (Object.keys(Updates).length > 0) {
+      ThisSession.CallServer("UpdateSession", { Updates });
+    }
+  }
+  ThisSession.LastPlr = Object.assign({}, ThisSession.Plr);
+}, null, -100); // Update with priority -100 to run after most other updaters
