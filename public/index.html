@@ -91,8 +91,8 @@
     </style>
 </head>
 <body style="background-color: black; overflow: hidden;">
-    <canvas id="Canvas" style="position: absolute; inset: 0; z-index: 100;"></canvas>
-    <div id="HtmlSceneMainMenu" style="display: none;">
+    <canvas id="Canvas" style="position: absolute; inset: 0; z-index: 100; display: none;"></canvas>
+    <div id="HtmlSceneMainMenu" style="display: inline;">
         <h1>Welcome to Jou-sting!</h1>
         <p><strong>Version 0.0.1</strong> (This is a recode of the original Jou-sting!)</p>
         <p style="color: #bbb;" id="TotalPlrCount">Current players: 1</p>
@@ -134,5 +134,6 @@
     <script src="userInputManager.js" type="module"></script>
     <script src="canvasManager.js" type="module"></script>
     <script src="scenes/mainMenuScene.js" type="module"></script>
+    <script src="scenes/gameScene.js" type="module"></script>
 </body>
 </html>

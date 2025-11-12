@@ -28,13 +28,13 @@ document.addEventListener("contextmenu", (Event) => {
 let Keys = [];
 
 document.addEventListener("keydown", (Event) => {
-  if (Keys.indexOf(Event.code.toLowerCase()) == -1) {
-    Keys.push(Event.code.toLowerCase());
+  if (Keys.indexOf(Event.key.toLowerCase()) == -1) {
+    Keys.push(Event.key.toLowerCase());
   }
 });
 
 document.addEventListener("keyup", (Event) => {
-  const Index = Keys.indexOf(Event.code.toLowerCase());
+  const Index = Keys.indexOf(Event.key.toLowerCase());
   if (Index > -1) {
     Keys.splice(Index, 1);
   }

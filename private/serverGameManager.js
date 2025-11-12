@@ -1,4 +1,3 @@
-const AddAPIListener = require("./server.js").AddAPIListener;
 const Sessions = require("./sessionManager.js").Sessions;
 
 class Game {
@@ -19,6 +18,8 @@ function FindSession(Id) {
 let Games = [];
 
 function Start() {
+  const AddAPIListener = require("./server.js").AddAPIListener;
+
   AddAPIListener("JoinGame", (Payload, Socket) => {
     const Session = FindSession(Payload.Id);
     if (!Session)

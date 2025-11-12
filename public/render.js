@@ -1,6 +1,7 @@
 import { Canvas, Ctx} from './canvasManager.js';
+import { AddUpdater } from './updaters.js';
 
-export let Camera = {X: 0, Y: 0, Zoom: 1, Rot: 0};
+export let Camera = {X: 0, Y: 0, Zoom: 1, Rot: 0, Tracking: null, TrackingSpeed: 0.05};
 
 export function RenderAll(Objects) {
   Ctx.clearRect(0, 0, Canvas.width, Canvas.height);
@@ -19,3 +20,10 @@ export function RenderAll(Objects) {
   }
   Ctx.restore();
 }
+
+AddUpdater((DT) => {
+  if (Camera.Tracking) {
+    Camera.X += (Camera.Tracking.X - Camera.X) * Camera.TrackingSpeed;
+    Camera.Y += (Camera.Tracking.Y - Camera.Y) * Camera.TrackingSpeed;
+  }
+});

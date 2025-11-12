@@ -13,25 +13,17 @@ let Descriptions = {
   "QuickSpin": "An immediate 180 degree spin. No cooldown"
 };
 
-let Move1Select = document.getElementById("Move1Select");
-let Move2Select = document.getElementById("Move2Select");
-let Move1Desc = document.getElementById("Move1Desc");
-let Move2Desc = document.getElementById("Move2Desc");
-let TotalPlrCountElement = document.getElementById("TotalPlrCount");
-let NameInput = document.getElementById("NameInput");
+// Declare variables at module level
+let Move1Select, Move2Select, Move1Desc, Move2Desc, TotalPlrCountElement, NameInput;
 
-Move1Select.addEventListener("change", function() {
-  Move1Desc.innerHTML = `<i>${Descriptions[this.value]}</i>`;
-  SetCookie("Move1", this.value);
-});
-
-Move2Select.addEventListener("change", function() {
-  Move2Desc.innerHTML = `<i>${Descriptions[this.value]}</i>`;
-  SetCookie("Move2", this.value);
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
-  await new Promise(resolve => setTimeout(resolve, 20));
+document.addEventListener("DOMContentLoaded", () => {
+  // Initialize DOM elements
+  Move1Select = document.getElementById("Move1Select");
+  Move2Select = document.getElementById("Move2Select");
+  Move1Desc = document.getElementById("Move1Desc");
+  Move2Desc = document.getElementById("Move2Desc");
+  TotalPlrCountElement = document.getElementById("TotalPlrCount");
+  NameInput = document.getElementById("NameInput");
 
   let Move1 = GetCookie("Move1");
   let Move2 = GetCookie("Move2");
@@ -41,19 +33,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   Move2Select.value = Move2 || "Dash";
   NameInput.value = Name || `Plr${Math.round(Math.random() * 1000) / 1000}`;
 
-  Move1Desc.innerHTML = `<i>${Descriptions[Move1]}</i>`;
-  Move2Desc.innerHTML = `<i>${Descriptions[Move2]}</i>`;
-});
+  Move1Desc.innerHTML = `<i>${Descriptions[Move1 || "Dash"]}</i>`;
+  Move2Desc.innerHTML = `<i>${Descriptions[Move2 || "Dash"]}</i>`;
 
-NameInput.addEventListener("input", function() {
-  SetCookie("Name", this.value);
-});
+  Move1Select.addEventListener("change", function() {
+    Move1Desc.innerHTML = `<i>${Descriptions[this.value]}</i>`;
+    SetCookie("Move1", this.value);
+  });
 
-document.getElementById("JoinGame").addEventListener("click", () => {
-  ThisSession.CallServer("JoinGame", { Id: ThisSession.Id, GameName: document.getElementById("GameName").value }, (Response) => {
-    ThisSession.GameName = Response.GameName;
-    CreateNewScene("Game");
-    SetScene("Game");
+  Move2Select.addEventListener("change", function() {
+    Move2Desc.innerHTML = `<i>${Descriptions[this.value]}</i>`;
+    SetCookie("Move2", this.value);
+  });
+
+  document.getElementById("JoinGame").addEventListener("click", () => {
+    try {
+    ThisSession.CallServer("JoinGame", { Id: ThisSession.Id, GameName: document.getElementById("GameName").value }, (Response) => {
+      ThisSession.GameName = Response.GameName;
+      CreateNewScene("Game");
+      SetScene("Game");
+    });
+    } catch (e) {
+      alert("Failed to join game: " + e);
+    }
+  });
+
+  NameInput.addEventListener("input", function() {
+    SetCookie("Name", this.value);
   });
 });
 
@@ -68,7 +74,7 @@ AddUpdater((DT) => {
     console.log(Response.TotalPlrCount);
     TotalPlrCount = Response.TotalPlrCount;
   });
-  if (ShouldUpdateTotalPlrCount && TotalPlrCount) {
+  if (ShouldUpdateTotalPlrCount && TotalPlrCount && TotalPlrCountElement) {
     TotalPlrCountElement.innerHTML = `Current players: ${TotalPlrCount}`;
   }
   TimeUntilNewUpdate = 0.25;

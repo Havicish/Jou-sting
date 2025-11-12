@@ -2,7 +2,7 @@ import { RenderAll } from "./render.js";
 import { UpdateAll } from "./updaters.js";
 import { Scenes, SetScene } from "./sceneManager.js";
 import { Mouse } from "./userInputManager.js";
-import { ThisSession } from "../networking.js";
+import { ThisSession } from "./networking.js";
 
 export let GameState = {
   CurrentScene: null,

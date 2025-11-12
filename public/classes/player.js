@@ -1,5 +1,6 @@
-import { Ctx } from "../canvasManager";
+import { Ctx } from "../canvasManager.js";
 import { IsKeyDown } from "../userInputManager.js";
+import { Camera } from "../render.js";
 import { ThisSession } from "../networking.js";
 
 export class Player {
@@ -12,6 +13,10 @@ export class Player {
     this.Rot = 0;
     this.VelRot = 0;
     this.Health = 100;
+    this.Move1CD = 3;
+    this.Move2CD = 0;
+    this.MaxMove1CD = 3;
+    this.MaxMove2CD = 3;
 
     this.IsClientControlled = false;
   }
@@ -20,22 +25,57 @@ export class Player {
     this.X += this.VelX * DT;
     this.Y += this.VelY * DT;
 
-    this.VelX /= ((1.02 - 1) * DT);
-    this.VelY /= ((1.02 - 1) * DT);
+    this.VelX /= Math.pow(1.07, DT * 60);
+    this.VelY /= Math.pow(1.07, DT * 60);
 
     this.Rot += this.VelRot * DT;
+    this.VelRot = 0;
 
     if (this.IsClientControlled) {
       if (IsKeyDown("W")) {
-        console.log();
+        this.VelX += Math.cos(this.Rot) * 200 * DT;
+        this.VelY += Math.sin(this.Rot) * 200 * DT;
+      }
+      if (IsKeyDown("A")) {
+        this.VelRot -= 4.5;
+      }
+      if (IsKeyDown("D")) {
+        this.VelRot += 4.5;
       }
     }
+
+    this.Move1CD -= DT;
+    this.Move2CD -= DT;
+    this.Move1CD = Math.max(0, this.Move1CD);
+    this.Move2CD = Math.max(0, this.Move2CD);
   }
 
   Render() {
+    Ctx.beginPath();
     Ctx.arc(this.X, this.Y, 10, 0, Math.PI * 2);
     Ctx.fillStyle = "#fff";
     Ctx.fill();
+    Ctx.beginPath();
+    Ctx.moveTo(this.X, this.Y);
+    Ctx.lineTo(this.X + Math.cos(this.Rot) * 50, this.Y + Math.sin(this.Rot) * 50);
+    Ctx.strokeStyle = "#fff";
+    Ctx.lineWidth = 1.5;
+    Ctx.stroke();
+    Ctx.beginPath();
+    Ctx.arc(this.X, this.Y, 22, 0, Math.PI * 2);
+    Ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    Ctx.lineWidth = 8;
+    Ctx.stroke();
+    Ctx.beginPath();
+    Ctx.arc(this.X, this.Y, 22, this.Rot, this.Rot + Math.PI * (1 - (this.Move2CD / this.MaxMove2CD)));
+    Ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    Ctx.lineWidth = 8;
+    Ctx.stroke();
+    Ctx.beginPath();
+    Ctx.arc(this.X, this.Y, 22, this.Rot - (Math.PI * (1 - (this.Move1CD / this.MaxMove1CD))), this.Rot);
+    Ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    Ctx.lineWidth = 8;
+    Ctx.stroke();
   }
 
   UpdateProps(Props) {

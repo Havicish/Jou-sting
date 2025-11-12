@@ -1,4 +1,5 @@
-import { Player } from "./classes/player";
+import { Player } from "./classes/player.js";
+import { Camera } from "./render.js";
 
 class Session {
   constructor() {
@@ -10,11 +11,16 @@ class Session {
 
     this.GameName = "";
     this.Plr = new Player();
+    this.Plr.IsClientControlled = true;
+    Camera.Tracking = this.Plr;
   }
 
   SetUp() {
     // Connect WebSocket first
-    this.Socket = new WebSocket(`ws://${window.location.href.replace(window.location.protocol, "")}`);
+    const Protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const Host = window.location.hostname;
+    const Port = window.location.hostname === 'localhost' ? ':8080' : '';
+    this.Socket = new WebSocket(`${Protocol}//${Host}${Port}`);
 
     this.Socket.onopen = () => {
       console.log("WebSocket connected");

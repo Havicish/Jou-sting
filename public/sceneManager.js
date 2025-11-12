@@ -13,13 +13,13 @@ function Get(Selector) {
 
 /** @param {string} Scene - The name of the scene. */
 export function AddObject(Scene, Object) {
-  Scenes[Scene].push(Object);
+  Scenes[Scene].Objects.push(Object);
   Object.Scene = Scene;
 }
 
 /** @param {string} Scene - The name of the scene. */
 export function RemoveObject(Scene, Object) {
-  Scenes[Scene] = Scenes[Scene].filter(obj => obj !== Object);
+  Scenes[Scene].Objects = Scenes[Scene].Objects.filter(obj => obj !== Object);
   Object.Scene = null;
 }
 

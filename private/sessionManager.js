@@ -1,5 +1,3 @@
-const AddAPIListener = require("./server.js").AddAPIListener;
-
 class Session {
   constructor(Id, Socket) {
     this.Id = Id;
@@ -38,6 +36,8 @@ class Session {
 let Sessions = [];
 
 function Start() {
+  const AddAPIListener = require("./server.js").AddAPIListener;
+  
   AddAPIListener("CreateSession", (Payload, Socket) => {
     const Id = Math.random().toString(36).substring(2, 15) +
                Math.random().toString(36).substring(2, 15);
@@ -62,6 +62,15 @@ function Start() {
 
   AddAPIListener("GetTotalPlrCount", () => {
     return { TotalPlrCount: Sessions.length };
+  });
+
+  AddAPIListener("JoinGame", (Payload) => {
+    const Session = Sessions.find(s => s.Id === Payload.Id);
+    if (Session) {
+      Session.GameName = Payload.GameName;
+      return { GameName: Payload.GameName };
+    }
+    return { Error: "Session not found" };
   });
 }
 
