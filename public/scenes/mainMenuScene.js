@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   Move1Select.value = Move1 || "Dash";
   Move2Select.value = Move2 || "Dash";
-  NameInput.value = Name || `Plr${Math.round(Math.random() * 1000) / 1000}`;
+  NameInput.value = Name || `Plr${Math.round(Math.random() * 1000)}`;
 
   Move1Desc.innerHTML = `<i>${Descriptions[Move1 || "Dash"]}</i>`;
   Move2Desc.innerHTML = `<i>${Descriptions[Move2 || "Dash"]}</i>`;

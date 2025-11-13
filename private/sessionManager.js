@@ -48,20 +48,33 @@ function Start() {
     const Id = Math.random().toString(36).substring(2, 15) +
               Math.random().toString(36).substring(2, 15);
     const NewSession = new Session(Id, Socket);
-    Sessions.push(NewSession);
+    
     console.log("Session created:", Id);
     
-    // Broadcast to other sessions - FIX THE MESSAGE FORMAT
+    for (let ExistingSession of Sessions) {
+      console.log("Sending existing session to new client:", ExistingSession.Id);
+      Socket.send(JSON.stringify({
+        ServerPush: {
+          API: "NewSession",
+          Payload: { Id: ExistingSession.Id, Data: Object.assign({}, ExistingSession) }
+        }
+      }));
+    }
+    
+    Sessions.push(NewSession);
+  
     for (let Session of Sessions) {
       if (Session.Socket !== Socket && Session.Socket.readyState === WebSocket.OPEN) {
+        console.log("Notifying existing session about new session:", Id);
         Session.Socket.send(JSON.stringify({
-          ServerPush: {  // Change from API to ServerPush
-            API: "NewSession",
-            Payload: { Id }
+          ServerPush: {
+            API: "NewSession", 
+            Payload: { Id: Id, Data: Object.assign({}, NewSession) }
           }
         }));
       }
     }
+    
     return { Id };
   });
 
@@ -122,7 +135,28 @@ function Start() {
 
 function SessionDisconnected(Socket) {
   const Before = Sessions.length;
+  
+  // Find the disconnected session first
+  const DisconnectedSession = Sessions.find(s => s.Socket === Socket);
+  const DisconnectedSessionId = DisconnectedSession ? DisconnectedSession.Id : null;
+  
+  // Remove the session from the array
   Sessions = Sessions.filter(s => s.Socket !== Socket);
+  
+  // Notify all remaining sessions about the disconnection
+  if (DisconnectedSessionId) {
+    Sessions.forEach(Session => {
+      if (Session.Socket.readyState === WebSocket.OPEN) {
+        Session.Socket.send(JSON.stringify({
+          ServerPush: {
+            API: "RemoveSession",
+            Payload: { Id: DisconnectedSessionId }
+          }
+        }));
+      }
+    });
+  }
+  
   console.log(`Removed ${Before - Sessions.length} session(s)`);
 }
 

@@ -11,8 +11,8 @@ export function RenderAll(Objects) {
   Ctx.save();
   Ctx.translate(Canvas.width / 2, Canvas.height / 2);
   Ctx.scale(Camera.Zoom, Camera.Zoom);
-  Ctx.translate(-Camera.X, -Camera.Y);
   Ctx.rotate(Camera.Rot);
+  Ctx.translate(-Camera.X, -Camera.Y);
   for (let Object of SortedObjects) {
     if (Object.Render) {
       Object.Render(Camera);
@@ -25,5 +25,6 @@ AddUpdater((DT) => {
   if (Camera.Tracking) {
     Camera.X += (Camera.Tracking.X - Camera.X) * Camera.TrackingSpeed;
     Camera.Y += (Camera.Tracking.Y - Camera.Y) * Camera.TrackingSpeed;
+    //Camera.Rot += ((-Camera.Tracking.Rot - Math.PI / 2) - Camera.Rot) * Camera.TrackingSpeed;
   }
 });

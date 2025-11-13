@@ -5,6 +5,7 @@ import { ThisSession } from "../networking.js";
 
 export class Player {
   constructor() {
+    this.Id = null;
     this.Name = "";
     this.X = 0;
     this.Y = 0;

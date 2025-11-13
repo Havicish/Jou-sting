@@ -30,7 +30,7 @@ function Start() {
       Game = new Game(Payload.GameName);
       Games.push(Game);
       Session.GameName = Game.Name;
-    } 
+    }
   });
 
   let LastRecTime = Date.now();

@@ -1,7 +1,7 @@
 import { Player } from "./classes/player.js";
 import { Camera } from "./render.js";
 import { AddUpdater } from "./updaters.js";
-import { AddObject, RemoveObject } from "./sceneManager.js";
+import { AddObject, RemoveObject, CreateNewScene, GetAllObjectsInScene } from "./sceneManager.js";
 
 export let SessionsInGame = [];
 
@@ -33,7 +33,21 @@ class Session {
     // Connect WebSocket first
     const Protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const Host = window.location.hostname;
-    const Port = window.location.hostname === 'localhost' ? ':8080' : '';
+    function isValidIpAddress(ipString) {
+      // Regex for IPv4
+      const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+      // Regex for IPv6 (simplified, more comprehensive regex exists for full validation)
+      const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::([0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}$|^[0-9a-fA-F]{1,4}::([0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){0,1}[0-9a-fA-F]{1,4}::([0-9a-fA-F]{1,4}:){0,4}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){0,2}[0-9a-fA-F]{1,4}::([0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4}::([0-9a-fA-F]{1,4}:){0,2}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){0,4}[0-9a-fA-F]{1,4}::([0-9a-fA-F]{1,4}:){0,1}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}::[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}::$/;
+
+      return ipv4Regex.test(ipString) || ipv6Regex.test(ipString);
+    }
+    let Port;
+    if (window.location.hostname === "localhost" || isValidIpAddress(window.location.hostname)) {
+      Port = ":8080";
+    } else {
+      Port = "";
+    }
     this.Socket = new WebSocket(`${Protocol}//${Host}${Port}`);
 
     this.Socket.onopen = () => {
@@ -64,6 +78,22 @@ class Session {
       }
     };
 
+    // Add this in the SetUp() method after setting up other socket handlers
+    this.Socket.onclose = () => {
+      console.log("WebSocket disconnected");
+      // Clear all remote sessions when we disconnect
+      SessionsInGame.forEach(session => {
+        if (session.Plr) {
+          RemoveObject("Game", session.Plr);
+        }
+      });
+      SessionsInGame.length = 0; // Clear the array
+    };
+
+    this.Socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
     // Close socket cleanly when leaving the page
     window.addEventListener("beforeunload", () => {
       if (this.Socket.readyState === WebSocket.OPEN) this.Socket.close();
@@ -88,24 +118,68 @@ class Session {
 
   HandleServerPush(Data) {
     let API = Data.API;
-
-    alert(API);
     
     if (API == "UpdateSessions") {
       let SessionId = Data.Payload.Id;
       if (SessionId == this.Id)
         return;
       let Updates = Data.Payload.Updates;
-      for (let Prop in Updates) {
-        this[Prop] = Updates[Prop];
+      
+      // Find the session in SessionsInGame and update its player
+      let ExistingSession = SessionsInGame.find(s => s.Id === SessionId);
+      if (ExistingSession && ExistingSession.Plr) {
+        for (let Prop in Updates) {
+          ExistingSession.Plr[Prop] = Updates[Prop];
+        }
       }
     }
 
     if (API == "NewSession") {
-      SessionsInGame.push(Data.Payload.Id);
-      let NewPlr = new Player();
-      NewPlr.IsClientControlled = false;
-      AddObject("Game", NewPlr);
+      let SessionData = Data.Payload.Data;
+      let SessionId = Data.Payload.Id;
+      
+      console.log("New session received:", SessionId, "My ID:", this.Id);
+      
+      // Create a new session object to track this player
+      let NewSession = {
+        Id: SessionId,
+        Plr: new Player()
+      };
+      NewSession.Plr.IsClientControlled = false;
+      NewSession.Plr.Id = SessionId;
+
+      // Copy all the session data to the player
+      Object.assign(NewSession.Plr, SessionData);
+      NewSession.Plr.IsClientControlled = false;
+      
+      // Add to our tracking array
+      SessionsInGame.push(NewSession);
+      
+      // Add the player to the game scene
+      CreateNewScene("Game");
+      AddObject("Game", NewSession.Plr);
+    }
+
+    if (API == "RemoveSession") {
+      let SessionId = Data.Payload.Id;
+      console.log("Removing session:", SessionId);
+      
+      let Index = SessionsInGame.findIndex(Session => Session.Id === SessionId);
+      if (Index !== -1) {
+        let SessionToRemove = SessionsInGame[Index];
+        
+        // Remove the player object from the game scene
+        if (SessionToRemove.Plr) {
+          RemoveObject("Game", SessionToRemove.Plr);
+        }
+        
+        // Remove the session from our tracking array
+        SessionsInGame.splice(Index, 1);
+        
+        console.log("Session removed successfully:", SessionId);
+      } else {
+        console.log("Session not found for removal:", SessionId);
+      }
     }
   }
 }
@@ -116,6 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ThisSession.SetUp();
 });
 
+let PingList = [];
 AddUpdater((DT) => {
   if (ThisSession.Socket && ThisSession.Socket.readyState === WebSocket.OPEN) {
     let Updates = {};
@@ -136,7 +211,15 @@ AddUpdater((DT) => {
     });
 
     if (Object.keys(Updates).length > 0) {
-      ThisSession.CallServer("UpdateSession", { Updates });
+      let StartTime = performance.now();
+      ThisSession.CallServer("UpdateSession", { Updates }, () => {
+        let EndTime = performance.now();
+        let Ping = EndTime - StartTime;
+        PingList.push(Ping);
+        if (PingList.length > 40) PingList.splice(0, PingList.length - 40);
+        let AvgPing = PingList.reduce((a, b) => a + b, 0) / PingList.length;
+        document.getElementById("PingDisplay").innerText = `Ping: ${Math.round(AvgPing)} ms`;
+      });
     }
   }
   ThisSession.LastPlr = Object.assign({}, ThisSession.Plr);

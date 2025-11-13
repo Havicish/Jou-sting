@@ -86,3 +86,8 @@ export function AddOnSceneChangeListener(Scene, Callback) {
 export function RemoveOnSceneChangeListener(Scene, Listener) {
   OnSceneChangeListeners[Scene] = OnSceneChangeListeners[Scene].filter(l => l !== Listener);
 }
+
+/** @param {string} Scene - The name of the scene. */
+export function GetAllObjectsInScene(Scene) {
+  return Scenes[Scene].Objects;
+}

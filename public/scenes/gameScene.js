@@ -2,7 +2,7 @@ import { AddObject, RemoveObject, SetScene, CreateNewScene, ClearScene, Scenes, 
 import { AddUpdater } from "../updaters.js"
 import { GameState } from "../main.js";
 import { SetCookie, GetCookie } from "../cookiesManager.js";
-import { ThisSession } from "../networking.js";
+import { ThisSession, SessionsInGame } from "../networking.js";
 import { Player } from "../classes/player.js";
 import { BoundingBox } from "../classes/boundingBox.js";
 
@@ -15,4 +15,12 @@ AddOnSceneChangeListener("Game", () => {
   let Plr = ThisSession.Plr;
   Plr.BoundingBox = MainBox;
   AddObject("Game", Plr);
+  
+  // Add any existing session players to the game scene
+  for (let Session of SessionsInGame) {
+    if (Session.Plr && !Session.Plr.IsClientControlled) {
+      Session.Plr.BoundingBox = MainBox;
+      AddObject("Game", Session.Plr);
+    }
+  }
 });
