@@ -1,9 +1,16 @@
 import { Player } from "./classes/player.js";
 import { Camera } from "./render.js";
 import { AddUpdater } from "./updaters.js";
-import { AddObject, RemoveObject, CreateNewScene, GetAllObjectsInScene } from "./sceneManager.js";
+import { AddObject, RemoveObject, CreateNewScene, GetAllObjectsInScene, SetScene, AddOnSceneChangeListener, RemoveOnSceneChangeListener } from "./sceneManager.js";
 
 export let SessionsInGame = [];
+
+function FindSession(Id) {
+  for (let Session of SessionsInGame) {
+    if (Session.Id == Id)
+      return Session;
+  }
+}
 
 class Session {
   constructor() {
@@ -13,7 +20,7 @@ class Session {
     this.Socket = null;
     this.PendingMessages = [];
 
-    this.GameName = "";
+    this.GameName = null;
     this.Plr = new Player();
     this.Plr.IsClientControlled = true;
     Camera.Tracking = this.Plr;
@@ -26,7 +33,7 @@ class Session {
       "X", "Y", "VelX", "VelY", "Rot", "VelRot",
       "Move1", "Move2", "Move1CD", "Move2CD"
     ];
-    this.FloatAccuracyThreshold = 0.005; // At what point we consider float changes significant enough to send to server
+    this.FloatAccuracyThreshold = 0.01; // At what point we consider float changes significant enough to send to server
   }
 
   SetUp() {
@@ -60,6 +67,8 @@ class Session {
         while (this.PendingMessages.length > 0) {
           this.Socket.send(JSON.stringify(this.PendingMessages.shift()));
         }
+
+        this.Plr.Id = this.Id;
       });
     };
 
@@ -118,49 +127,44 @@ class Session {
 
   HandleServerPush(Data) {
     let API = Data.API;
-    
-    if (API == "UpdateSessions") {
-      let SessionId = Data.Payload.Id;
-      if (SessionId == this.Id)
-        return;
-      let Updates = Data.Payload.Updates;
-      
-      // Find the session in SessionsInGame and update its player
-      let ExistingSession = SessionsInGame.find(s => s.Id === SessionId);
-      if (ExistingSession && ExistingSession.Plr) {
-        for (let Prop in Updates) {
-          ExistingSession.Plr[Prop] = Updates[Prop];
+
+    if (API == "SessionJoinedGame") {
+      let Session = Data.Payload.Session;
+      let Plr = new Player();
+
+      Plr = Object.assign(Plr, Session.Plr);
+
+      SessionsInGame.push(Session);
+
+      setTimeout(() => {
+        AddObject("Game", Plr);
+        for (let Obj of GetAllObjectsInScene("Game")) {
+          if (Obj.constructor.name == "BoundingBox") {
+            Plr.BoundingBox = Obj;
+            break;
+          }
+        }
+      }, 10);
+    }
+
+    if (API == "UpdateSession") {
+      let Session = FindSession(Data.Payload.SessionId);
+      let ExsistingPlr;
+
+      for (let Obj of GetAllObjectsInScene("Game")) {
+        if (Obj.Id && Obj.Id == Session.Id) {
+          ExsistingPlr = Obj;
         }
       }
+
+      for (let Key of Object.keys(ExsistingPlr)) {
+        ExsistingPlr[Key] = Session.Plr[Key];
+      }
+
+      console.log(Session.Plr);
     }
 
-    if (API == "NewSession") {
-      let SessionData = Data.Payload.Data;
-      let SessionId = Data.Payload.Id;
-      
-      console.log("New session received:", SessionId, "My ID:", this.Id);
-      
-      // Create a new session object to track this player
-      let NewSession = {
-        Id: SessionId,
-        Plr: new Player()
-      };
-      NewSession.Plr.IsClientControlled = false;
-      NewSession.Plr.Id = SessionId;
-
-      // Copy all the session data to the player
-      Object.assign(NewSession.Plr, SessionData);
-      NewSession.Plr.IsClientControlled = false;
-      
-      // Add to our tracking array
-      SessionsInGame.push(NewSession);
-      
-      // Add the player to the game scene
-      CreateNewScene("Game");
-      AddObject("Game", NewSession.Plr);
-    }
-
-    if (API == "RemoveSession") {
+    if (API == "RemoveSession" && false) {
       let SessionId = Data.Payload.Id;
       console.log("Removing session:", SessionId);
       
@@ -201,7 +205,7 @@ AddUpdater((DT) => {
 
       if (typeof CurrentValue === "number") {
         if (Math.abs(CurrentValue - LastValue) > ThisSession.FloatAccuracyThreshold) {
-          Updates[Prop] = CurrentValue;
+          Updates[Prop] = Math.round(CurrentValue / ThisSession.FloatAccuracyThreshold) * ThisSession.FloatAccuracyThreshold;
           ThisSession.LastPlr[Prop] = CurrentValue;
         }
       } else if (CurrentValue !== LastValue) {
@@ -212,7 +216,7 @@ AddUpdater((DT) => {
 
     if (Object.keys(Updates).length > 0) {
       let StartTime = performance.now();
-      ThisSession.CallServer("UpdateSession", { Updates }, () => {
+      ThisSession.CallServer("UpdateSession", { Updates: Updates }, () => {
         let EndTime = performance.now();
         let Ping = EndTime - StartTime;
         PingList.push(Ping);

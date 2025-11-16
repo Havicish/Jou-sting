@@ -101,6 +101,10 @@ export class Player {
     Ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
     Ctx.lineWidth = 8;
     Ctx.stroke();
+    Ctx.beginPath();
+    Ctx.fillStyle = "#fff";
+    Ctx.textAlign = "center";
+    Ctx.fillText(this.Id, this.X, this.Y - 16);
   }
 
   UpdateProps(Props) {

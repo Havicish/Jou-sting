@@ -21,13 +21,13 @@ const MimeTypes = {
   ".ico": "image/x-icon"
 };
 
-const APIListeners = {};
+let APIListeners = {};
 
 const Server = Http.createServer((Req, Res) => {
   if (Req.method === "GET") {
-    const FilePath = Path.join(PublicDir, Req.url === "/" ? "index.html" : Req.url);
-    const Ext = Path.extname(FilePath).toLowerCase();
-    const ContentType = MimeTypes[Ext] || "application/octet-stream";
+    let FilePath = Path.join(PublicDir, Req.url === "/" ? "index.html" : Req.url);
+    let Ext = Path.extname(FilePath).toLowerCase();
+    let ContentType = MimeTypes[Ext] || "application/octet-stream";
 
     Fs.readFile(FilePath, (Err, Data) => {
       if (Err) {
@@ -44,15 +44,13 @@ const Server = Http.createServer((Req, Res) => {
 const WSS = new WebSocket.Server({ server: Server });
 
 WSS.on("connection", (Socket) => {
-  console.log("Client connected");
-
   Socket.on("message", (Message) => {
     try {
-      const Data = JSON.parse(Message);
-      const { API, Payload } = Data;
+      let Data = JSON.parse(Message);
+      let { API, Payload } = Data;
 
       if (API && APIListeners[API]) {
-        const Result = APIListeners[API](Payload, Socket);
+        let Result = APIListeners[API](Payload, Socket);
         if (Result !== undefined) {
           Socket.send(JSON.stringify({ API, Result }));
         }
@@ -65,7 +63,6 @@ WSS.on("connection", (Socket) => {
   });
 
   Socket.on("close", () => {
-    console.log("Client disconnected");
     SessionDisconnected(Socket);
   });
 });

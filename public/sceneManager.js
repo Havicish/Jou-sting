@@ -13,18 +13,30 @@ function Get(Selector) {
 
 /** @param {string} Scene - The name of the scene. */
 export function AddObject(Scene, Object) {
+  if (Scenes[Scene] == undefined) {
+    console.error(`Scene: \"${Scene}\" does not exsist.`);
+    return;
+  }
   Scenes[Scene].Objects.push(Object);
   Object.Scene = Scene;
 }
 
 /** @param {string} Scene - The name of the scene. */
 export function RemoveObject(Scene, Object) {
+  if (Scenes[Scene] == undefined) {
+    console.error(`Scene: \"${Scene}\" does not exsist.`);
+    return;
+  }
   Scenes[Scene].Objects = Scenes[Scene].Objects.filter(obj => obj !== Object);
   Object.Scene = null;
 }
 
 /** @param {string} Scene - The name of the scene. */
 export function SetScene(Scene) {
+  if (Scenes[Scene] == undefined) {
+    console.error(`Scene: \"${Scene}\" does not exsist.`);
+    return;
+  }
   let LastScene = GameState.CurrentScene;
   if (GameState.CurrentScene === Scene) return;
   GameState.CurrentScene = Scene;
@@ -51,6 +63,10 @@ export function SetScene(Scene) {
 
 /** @param {String} Scene */
 export function ResetScene(Scene) {
+  if (Scenes[Scene] == undefined) {
+    console.error(`Scene: \"${Scene}\" does not exsist.`);
+    return;
+  }
   for (let Listener of OnSceneChangeListeners[Scene] || []) {
     Listener.Callback();
   }
@@ -65,6 +81,10 @@ export function CreateNewScene(Scene) {
 
 /** @param {string} Scene - The name of the scene. */
 export function ClearScene(Scene) {
+  if (Scenes[Scene] == undefined) {
+    console.error(`Scene: \"${Scene}\" does not exsist.`);
+    return;
+  }
   for (let Object of Scenes[Scene].Objects) {
     if (Object.OnClear) {
       Object.OnClear();
@@ -89,5 +109,9 @@ export function RemoveOnSceneChangeListener(Scene, Listener) {
 
 /** @param {string} Scene - The name of the scene. */
 export function GetAllObjectsInScene(Scene) {
+  if (Scenes[Scene] == undefined) {
+    console.error(`Scene: \"${Scene}\" does not exsist.`);
+    return;
+  }
   return Scenes[Scene].Objects;
 }

@@ -48,11 +48,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("JoinGame").addEventListener("click", () => {
     try {
-    ThisSession.CallServer("JoinGame", { Id: ThisSession.Id, GameName: document.getElementById("GameName").value }, (Response) => {
-      ThisSession.GameName = Response.GameName;
       CreateNewScene("Game");
-      SetScene("Game");
-    });
+      ThisSession.CallServer("JoinGame", { GameName: document.getElementById("GameName").value }, (Response) => {
+        ThisSession.GameName = Response.GameName;
+        SetScene("Game");
+      });
     } catch (e) {
       alert("Failed to join game: " + e);
     }
@@ -67,7 +67,7 @@ let TimeUntilNewUpdate = 0;
 let TotalPlrCount;
 AddUpdater((DT) => {
   TimeUntilNewUpdate -= DT;
-  if (TimeUntilNewUpdate > 0)
+  if (TimeUntilNewUpdate > 0 || !ShouldUpdateTotalPlrCount)
     return;
 
   ThisSession.CallServer("GetTotalPlrCount", {}, (Response) => {
@@ -89,4 +89,5 @@ AddOnSceneChangeListener("", () => { // Update on any change
     ShouldUpdateTotalPlrCount = true;
   else
     ShouldUpdateTotalPlrCount = false;
+  console.log(ShouldUpdateTotalPlrCount);
 });
