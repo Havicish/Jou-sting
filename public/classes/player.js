@@ -24,6 +24,8 @@ export class Player {
     this.LanceLength = 60;
     this.BoundingBox = null;
 
+    this.PropsToSmoothTo = {};
+
     this.IsClientControlled = false;
   }
 

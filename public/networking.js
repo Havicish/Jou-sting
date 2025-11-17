@@ -147,8 +147,9 @@ class Session {
       }, 10);
     }
 
-    if (API == "UpdateSession") {
+    if (API == "ServerUpdateSession") {
       let Session = FindSession(Data.Payload.SessionId);
+      let Updates = Data.Payload.Updates;
       let ExsistingPlr;
 
       for (let Obj of GetAllObjectsInScene("Game")) {
@@ -157,33 +158,39 @@ class Session {
         }
       }
 
-      for (let Key of Object.keys(ExsistingPlr)) {
-        ExsistingPlr[Key] = Session.Plr[Key];
-      }
+      if (!ExsistingPlr) return;
 
-      console.log(Session.Plr);
+      for (const Key of Object.keys(Updates)) {
+        if (Object.prototype.hasOwnProperty.call(Updates, Key)) {
+          if (typeof Updates[Key] == "number") {
+            ExsistingPlr[Key] += (Updates[Key] - ExsistingPlr[Key]) * 0.25;
+          } else {
+            ExsistingPlr[Key] = Updates[Key];
+          }
+        }
+      }
     }
 
-    if (API == "RemoveSession" && false) {
+    if (API == "RemoveSession") {
       let SessionId = Data.Payload.Id;
-      console.log("Removing session:", SessionId);
       
-      let Index = SessionsInGame.findIndex(Session => Session.Id === SessionId);
-      if (Index !== -1) {
-        let SessionToRemove = SessionsInGame[Index];
-        
-        // Remove the player object from the game scene
-        if (SessionToRemove.Plr) {
-          RemoveObject("Game", SessionToRemove.Plr);
+      // Find and remove the player object from the game scene
+      let PlayerToRemove = null;
+      for (let Obj of GetAllObjectsInScene("Game")) {
+        if (Obj.Id && Obj.Id == SessionId) {
+          PlayerToRemove = Obj;
+          break;
         }
-        
-        // Remove the session from our tracking array
-        SessionsInGame.splice(Index, 1);
-        
-        console.log("Session removed successfully:", SessionId);
-      } else {
-        console.log("Session not found for removal:", SessionId);
       }
+      
+      if (PlayerToRemove) {
+        RemoveObject("Game", PlayerToRemove);
+      } else {
+        console.error(`Player with SessionId: ${SessionId} not found in Game scene.`);
+      }
+
+      // Remove session from local list
+      SessionsInGame = SessionsInGame.filter(s => s.Id !== SessionId);
     }
   }
 }

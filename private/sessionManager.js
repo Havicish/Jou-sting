@@ -103,6 +103,10 @@ function SessionDisconnected(Socket) {
   }
 }
 
+function GetSessions() {
+  return Sessions;
+}
+
 function GetPropsAllowedToChange() {
   return [
       "Name",
@@ -111,4 +115,4 @@ function GetPropsAllowedToChange() {
     ];
 }
 
-module.exports = { Start, SessionDisconnected, Sessions, GetPropsAllowedToChange };
+module.exports = { Start, SessionDisconnected, GetSessions, GetPropsAllowedToChange };

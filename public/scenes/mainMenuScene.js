@@ -71,7 +71,6 @@ AddUpdater((DT) => {
     return;
 
   ThisSession.CallServer("GetTotalPlrCount", {}, (Response) => {
-    console.log(Response.TotalPlrCount);
     TotalPlrCount = Response.TotalPlrCount;
   });
   if (ShouldUpdateTotalPlrCount && TotalPlrCount && TotalPlrCountElement) {
@@ -89,5 +88,4 @@ AddOnSceneChangeListener("", () => { // Update on any change
     ShouldUpdateTotalPlrCount = true;
   else
     ShouldUpdateTotalPlrCount = false;
-  console.log(ShouldUpdateTotalPlrCount);
 });
