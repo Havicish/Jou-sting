@@ -80,7 +80,7 @@ function Start() {
   });
 }
 
-function SessionDisconnected(Socket) {  
+function SessionDisconnected(Socket) {
   // Find the disconnected session first
   let DisconnectedSession = Sessions.find(s => s.Socket === Socket);
   let DisconnectedSessionId = DisconnectedSession ? DisconnectedSession.Id : null;

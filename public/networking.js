@@ -163,7 +163,7 @@ class Session {
       for (const Key of Object.keys(Updates)) {
         if (Object.prototype.hasOwnProperty.call(Updates, Key)) {
           if (typeof Updates[Key] == "number") {
-            ExsistingPlr[Key] += (Updates[Key] - ExsistingPlr[Key]) * 0.25;
+            ExsistingPlr.PropsToSmoothTo[Key] = Updates[Key];
           } else {
             ExsistingPlr[Key] = Updates[Key];
           }

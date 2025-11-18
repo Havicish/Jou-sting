@@ -4,7 +4,7 @@ const GetPropsAllowedToChange = require("./sessionManager.js").GetPropsAllowedTo
 class Game {
   constructor(Name) {
     this.Name = Name;
-    this.Plrs = [];
+    this.Sessions = [];
   }
 }
 
@@ -28,14 +28,12 @@ function Start() {
 
   AddAPIListener("JoinGame", (Payload, Socket) => {
     try {
-      console.log(`Attempt join game ${JSON.stringify(Payload)}`);
-
       let Session = FindSession(Payload.SessionId);
       let TempSessions = [];
       for (let S of GetSessions()) {
         TempSessions.push(S.Id);
       }
-      console.log(`Existing sessions: ${JSON.stringify(TempSessions)}      Id: ${Payload.SessionId}`);
+
       if (!Session) return { GameName: null, Success: false, Error: "Session not found" };
 
       let ThisGame = FindGame(Payload.GameName);
@@ -43,6 +41,8 @@ function Start() {
         ThisGame = new Game(Payload.GameName);
         Games.push(ThisGame);
       }
+      Session.Plr.Id = Session.Id;
+      ThisGame.Sessions.push(Session);
       Session.GameName = ThisGame.Name;
 
       for (let Session2 of GetSessions()) {
@@ -66,8 +66,6 @@ function Start() {
           }
         }));
       }
-
-      console.log(`Join game ${JSON.stringify(Payload)}`);
 
       return { GameName: ThisGame.Name };
     } catch (err) {
@@ -114,13 +112,48 @@ function Start() {
     LastRecTime = Now;
 
     Games.forEach((Game) => {
-      Game.Plrs.forEach((Plr) => {
-        Game.Plrs.forEach((Plr2) => {
-          if (Plr === Plr2) return;
-        });
-      });
+      CheckForPlrStabs(Game);
     });
   }, 1000 / 60); // 60 times per second
 }
 
-module.exports = { Start };
+function OnRemoveSession(Socket) {
+  let Session = GetSessions().find(s => s.Socket === Socket);
+  if (!Session) return;
+  
+  for (let Game of Games) {
+    Game.Plrs = Game.Plrs.filter(Plr => Plr.Id != Session.Id);
+  }
+}
+
+function Distance(X1, Y1, X2, Y2) {
+  return Math.sqrt(Math.pow(X1 - X2, 2) + Math.pow(Y1 - Y2, 2));
+}
+
+function CheckForPlrStabs(Game) {
+  for (let Session of Game.Sessions) {
+    for (let Session2 of Game.Sessions) {
+      let Plr = Session.Plr;
+      let Plr2 = Session2.Plr;
+      if (Plr.Id == Plr2.Id) continue;
+
+      let Dist = Distance(Plr.X + Math.cos(Plr.Rot) * Plr.LanceLength, Plr.Y + Math.sin(Plr.Rot) * Plr.LanceLength, Plr2.X + Math.cos(Plr2.Rot), Plr2.Y + Math.sin(Plr2.Rot));
+
+      if (Dist < 10) {
+        Plr.VelX -= Math.cos(Plr.Rot) * 5;
+        Plr.VelY -= Math.sin(Plr.Rot) * 5;
+
+        Session.Socket.send(JSON.stringify({ 
+          ServerPush: {
+            API: "ServerUpdateSession",
+            Payload: { SessionId: Session.Id, Updates: { VelX: Plr.VelX, VelY: Plr.VelY }  }
+          }
+        }));
+
+        console.log("Stab");
+      }
+    }
+  }
+}
+
+module.exports = { Start, OnRemoveSession };

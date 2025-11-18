@@ -25,6 +25,8 @@ export class Player {
     this.BoundingBox = null;
 
     this.PropsToSmoothTo = {};
+    this.GeneralSmoothingFactor = 0.25;
+    this.SpecificSmoothingFactors = { "Rot": 0.5 };
 
     this.IsClientControlled = false;
   }
@@ -75,6 +77,15 @@ export class Player {
     this.Move2CD -= DT;
     this.Move1CD = Math.max(0, this.Move1CD);
     this.Move2CD = Math.max(0, this.Move2CD);
+
+    for (let Key of Object.keys(this.PropsToSmoothTo)) {
+      let Smoothing = this.GeneralSmoothingFactor;
+
+      if (Object.hasOwn(this.SpecificSmoothingFactors, Key))
+        Smoothing = this.SpecificSmoothingFactors[Key];
+
+      this[Key] += (this.PropsToSmoothTo[Key] - this[Key]) * Smoothing * DT * 60
+    }
   }
 
   Render() {
@@ -106,7 +117,14 @@ export class Player {
     Ctx.beginPath();
     Ctx.fillStyle = "#fff";
     Ctx.textAlign = "center";
-    Ctx.fillText(this.Id, this.X, this.Y - 16);
+    Ctx.save();
+    Ctx.translate(this.X, this.Y);
+    Ctx.rotate(-Camera.Rot);
+    if (Camera.TrackRot)
+      Ctx.fillText(this.Id, 0, 20);
+    else
+      Ctx.fillText(this.Id, 0, -16);
+    Ctx.restore();
   }
 
   UpdateProps(Props) {
