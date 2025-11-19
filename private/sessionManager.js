@@ -10,7 +10,7 @@ class Player {
     this.VelY = 0;
     this.Rot = 0;
     this.VelRot = 0;
-    this.Health = 100;
+    this.Health = 50;
     this.Move1CD = 3;
     this.Move2CD = 0;
     this.MaxMove1CD = 3;
@@ -21,6 +21,8 @@ class Player {
     this.LanceLength = 60;
     this.BoundingBox = null;
     this.StabbingCD = 0;
+    this.Hue = 0;
+    this.DeadTime = 0;
 
     this.IsClientControlled = false;
   }
@@ -79,6 +81,10 @@ function Start() {
   AddAPIListener("GetTotalPlrCount", () => {
     return { TotalPlrCount: Sessions.length };
   });
+
+  AddAPIListener("Ping", () => {
+    return { Success: true };
+  });
 }
 
 function SessionDisconnected(Socket) {
@@ -110,7 +116,7 @@ function GetSessions() {
 
 function GetPropsAllowedToChange() {
   return [
-      "Name",
+      "Name", "Hue",
       "X", "Y", "VelX", "VelY", "Rot", "VelRot",
       "Move1", "Move2", "Move1CD", "Move2CD"
     ];

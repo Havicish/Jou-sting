@@ -2,6 +2,7 @@ import { Player } from "./classes/player.js";
 import { Camera } from "./render.js";
 import { AddUpdater } from "./updaters.js";
 import { AddObject, RemoveObject, CreateNewScene, GetAllObjectsInScene, SetScene, AddOnSceneChangeListener, RemoveOnSceneChangeListener } from "./sceneManager.js";
+import { GameState } from "./main.js";
 //import { Server } from "ws";
 
 export let SessionsInGame = [];
@@ -30,7 +31,7 @@ class Session {
     this.LastPlr = Object.assign({}, this.Plr);
 
     this.PropertiesAllowedToSet = [
-      "Name",
+      "Name", "Hue",
       "X", "Y", "VelX", "VelY", "Rot", "VelRot",
       "Move1", "Move2", "Move1CD", "Move2CD"
     ];
@@ -88,7 +89,6 @@ class Session {
       }
     };
 
-    // Add this in the SetUp() method after setting up other socket handlers
     this.Socket.onclose = () => {
       console.log("WebSocket disconnected");
       // Clear all remote sessions when we disconnect
@@ -98,6 +98,9 @@ class Session {
         }
       });
       SessionsInGame.length = 0; // Clear the array
+
+      CreateNewScene("Disconnected");
+      SetScene("Disconnected");
     };
 
     this.Socket.onerror = (error) => {
@@ -119,11 +122,19 @@ class Session {
     if (this.Socket.readyState === WebSocket.OPEN) {
       this.Socket.send(JSON.stringify(Message));
     } else {
-      // Queue if socket not ready
       this.PendingMessages.push(Message);
     }
 
-    if (Callback) this.Callbacks[API] = Callback;
+    if (Callback) {
+      this.Callbacks[API] = Callback;
+      
+      // Add timeout to prevent callback leak
+      setTimeout(() => {
+        if (this.Callbacks[API]) {
+          delete this.Callbacks[API];
+        }
+      }, 30000); // 30 second timeout
+    }
   }
 
   HandleServerPush(Data) {
@@ -212,16 +223,30 @@ AddUpdater((DT) => {
     });
 
     if (Object.keys(Updates).length > 0) {
-      let StartTime = performance.now();
-      ThisSession.CallServer("UpdateSession", { Updates: Updates }, () => {
-        let EndTime = performance.now();
-        let Ping = EndTime - StartTime;
-        PingList.push(Ping);
-        if (PingList.length > 40) PingList.splice(0, PingList.length - 40);
-        let AvgPing = PingList.reduce((a, b) => a + b, 0) / PingList.length;
-        document.getElementById("PingDisplay").innerText = `Ping: ${Math.round(AvgPing)} ms`;
-      });
+      ThisSession.CallServer("UpdateSession", { Updates: Updates }, () => {});
     }
+
+    let StartTime = performance.now();
+    ThisSession.CallServer("Ping", { Updates: Updates }, () => {
+      let EndTime = performance.now();
+      let Ping = EndTime - StartTime;
+      PingList.push(Ping);
+      if (PingList.length > 40) PingList.splice(0, PingList.length - 40);
+      let AvgPing = PingList.reduce((a, b) => a + b, 0) / PingList.length;
+      document.getElementById("PingDisplay").innerText = `Ping: ${Math.round(AvgPing)} ms`;
+
+      if (AvgPing < 15)
+        document.getElementById("PingDisplay").style.color = "#0f0";
+      else if (AvgPing < 40)
+        document.getElementById("PingDisplay").style.color = "#ff0";
+      else
+        document.getElementById("PingDisplay").style.color = "#f00";
+    });
+
+    if (GameState.CurrentScene == "Game")
+      document.getElementById("PingDisplay").style.display = "block";
+    else
+      document.getElementById("PingDisplay").style.display = "none";
   }
   ThisSession.LastPlr = Object.assign({}, ThisSession.Plr);
 }, null, -100); // Update with priority -100 to run after most other updaters

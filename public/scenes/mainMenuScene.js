@@ -14,7 +14,7 @@ let Descriptions = {
 };
 
 // Declare variables at module level
-let Move1Select, Move2Select, Move1Desc, Move2Desc, TotalPlrCountElement, NameInput;
+let Move1Select, Move2Select, Move1Desc, Move2Desc, TotalPlrCountElement, NameInput, CharacterColorInput;
 
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize DOM elements
@@ -24,14 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
   Move2Desc = document.getElementById("Move2Desc");
   TotalPlrCountElement = document.getElementById("TotalPlrCount");
   NameInput = document.getElementById("NameInput");
+  CharacterColorInput = document.getElementById("CharacterColor");
 
   let Move1 = GetCookie("Move1");
   let Move2 = GetCookie("Move2");
   let Name = GetCookie("Name");
+  let CharacterColor = GetCookie("CharacterColor");
 
   Move1Select.value = Move1 || "Dash";
   Move2Select.value = Move2 || "Dash";
   NameInput.value = Name || `Plr${Math.round(Math.random() * 1000)}`;
+  CharacterColorInput.value = CharacterColor || "0";
+  CharacterColorInput.style.setProperty('--thumb-color', `hsl(${CharacterColorInput.value}, 100%, 50%)`);
 
   Move1Desc.innerHTML = `<i>${Descriptions[Move1 || "Dash"]}</i>`;
   Move2Desc.innerHTML = `<i>${Descriptions[Move2 || "Dash"]}</i>`;
@@ -46,10 +50,15 @@ document.addEventListener("DOMContentLoaded", () => {
     SetCookie("Move2", this.value);
   });
 
+  CharacterColorInput.addEventListener("change", function() {
+    SetCookie("CharacterColor", this.value);
+  });
+
   document.getElementById("JoinGame").addEventListener("click", () => {
     try {
       CreateNewScene("Game");
       ThisSession.Plr.Name = document.getElementById("NameInput").value || "Unnamed";
+      ThisSession.Plr.Hue = document.getElementById("CharacterColor").value || 0;
       ThisSession.CallServer("JoinGame", { GameName: document.getElementById("GameName").value }, (Response) => {
         ThisSession.GameName = Response.GameName;
         SetScene("Game");

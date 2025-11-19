@@ -14,7 +14,6 @@ function FindGame(Name) {
 
 function FindSession(Id) {
   for (let Session of GetSessions()) {
-    //console.log(`${Id} ?= ${Session.Id}`);
     if (Session.Id == Id)
       return Session
   }
@@ -113,17 +112,27 @@ function Start() {
 
     Games.forEach((Game) => {
       CheckForPlrStabs(Game, DT);
+      PlrDeaths(Game, DT);
     });
   }, 1000 / 60); // 60 times per second
 }
 
 function OnRemoveSession(Socket) {
   let Session = GetSessions().find(s => s.Socket === Socket);
-  if (!Session) return;
-  
-  for (let Game of Games) {
-    Game.Plrs = Game.Sessions.filter(Plr => Plr.Id != Session.Id);
+  if (!Session) {
+    console.error("Session not found for disconnected socket");
+    return;
   }
+
+  for (let Game of Games) {
+    for (let [i, Session2] of Game.Sessions.entries()) {
+      if (Session2.Id == Session.Id) {
+        Game.Sessions.splice(i, 1);
+        return;
+      }
+    }
+  }
+  console.log(`Tried to remove session ${Session.Id} from games`);
 }
 
 function Distance(X1, Y1, X2, Y2) {
@@ -142,14 +151,15 @@ function CheckForPlrStabs(Game, DT) {
       let Dist = Distance(Plr.X + Math.cos(Plr.Rot) * Plr.LanceLength, Plr.Y + Math.sin(Plr.Rot) * Plr.LanceLength, Plr2.X + Math.cos(Plr2.Rot), Plr2.Y + Math.sin(Plr2.Rot));
 
       if (Dist < 30 && Plr.StabbingCD <= 0) {
-        Plr.VelX -= Math.cos(Plr.Rot) * 1000;
-        Plr.VelY -= Math.sin(Plr.Rot) * 1000;
+        Plr.VelX -= Math.cos(Plr.Rot) * 750;
+        Plr.VelY -= Math.sin(Plr.Rot) * 750;
         Plr.StabbingCD = 0.25;
         Plr2.VelX += Math.cos(Plr.Rot) * 500;
         Plr2.VelY += Math.sin(Plr.Rot) * 500;
+        Plr2.Health -= 10;
 
         ThingsToUpdate.push({ SessionId: Session.Id, Updates: { VelX: Plr.VelX, VelY: Plr.VelY } });
-        ThingsToUpdate.push({ SessionId: Session2.Id, Updates: { VelX: Plr2.VelX, VelY: Plr2.VelY } });
+        ThingsToUpdate.push({ SessionId: Session2.Id, Updates: { VelX: Plr2.VelX, VelY: Plr2.VelY, Health: Plr2.Health } });
       }
     }
 
@@ -165,6 +175,31 @@ function CheckForPlrStabs(Game, DT) {
         Payload: Updates
       }
     }));
+  }
+}
+
+function PlrDeaths(Game, DT) {
+  let ThingsToUpdate = [];
+  for (let Session of Game.Sessions) {
+    let Plr = Session.Plr;
+
+    if (Plr.Health <= 0 && Plr.DeadTime <= 0) {
+      Plr.DeadTime = 10;
+    }
+
+    if (Plr.DeadTime > 0) {
+      Plr.DeadTime -= DT;
+
+      if (Plr.DeadTime <= 0) {
+        Plr.Health = Plr.MaxHealth;
+        Plr.X = Math.random() * 2000 - 1000;
+        Plr.Y = Math.random() * 2000 - 1000;
+
+        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, X: Plr.X, Y: Plr.Y } });
+      }
+      
+      ThingsToUpdate.push({ SessionId: Session.Id, Updates: { DeadTime: Plr.DeadTime } });
+    }
   }
 }
 

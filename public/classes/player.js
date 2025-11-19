@@ -13,7 +13,8 @@ export class Player {
     this.VelY = 0;
     this.Rot = 0;
     this.VelRot = 0;
-    this.Health = 100;
+    this.Health = 1;
+    this.MaxHealth = 100;
     this.Move1CD = 3;
     this.Move2CD = 0;
     this.MaxMove1CD = 3;
@@ -23,6 +24,9 @@ export class Player {
     this.TurnSpeed = 6.5;
     this.LanceLength = 60;
     this.BoundingBox = null;
+    this.StabbingCD = 0;
+    this.Hue = 0;
+    this.DeadTime = 0;
 
     this.PropsToSmoothTo = {};
     this.GeneralSmoothingFactor = 0.25;
@@ -89,30 +93,34 @@ export class Player {
   }
 
   Render() {
+    let Color = `hsl(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%)`;
+    let Color40Percent = `hsla(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%, 0.4)`;
+    let Color20Percent = `hsla(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%, 0.2)`;
+
     Ctx.beginPath();
     Ctx.arc(this.X, this.Y, 10, 0, Math.PI * 2);
-    Ctx.fillStyle = "#fff";
+    Ctx.fillStyle = Color;
     Ctx.fill();
     Ctx.beginPath();
-    Ctx.moveTo(this.X, this.Y);
-    Ctx.lineTo(this.X + Math.cos(this.Rot) * this.LanceLength, this.Y + Math.sin(this.Rot) * this.LanceLength);
-    Ctx.strokeStyle = "#fff";
-    Ctx.lineWidth = 1.5;
-    Ctx.stroke();
-    Ctx.beginPath();
     Ctx.arc(this.X, this.Y, 22, 0, Math.PI * 2);
-    Ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    Ctx.strokeStyle = Color20Percent;
     Ctx.lineWidth = 8;
     Ctx.stroke();
     Ctx.beginPath();
     Ctx.arc(this.X, this.Y, 22, this.Rot, this.Rot + Math.PI * (1 - (this.Move2CD / this.MaxMove2CD)));
-    Ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    Ctx.strokeStyle = Color40Percent;
     Ctx.lineWidth = 8;
     Ctx.stroke();
     Ctx.beginPath();
     Ctx.arc(this.X, this.Y, 22, this.Rot - (Math.PI * (1 - (this.Move1CD / this.MaxMove1CD))), this.Rot);
-    Ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    Ctx.strokeStyle = Color40Percent;
     Ctx.lineWidth = 8;
+    Ctx.stroke();
+    Ctx.beginPath();
+    Ctx.moveTo(this.X + Math.cos(this.Rot) * 10, this.Y + Math.sin(this.Rot) * 10);
+    Ctx.lineTo(this.X + Math.cos(this.Rot) * this.LanceLength, this.Y + Math.sin(this.Rot) * this.LanceLength);
+    Ctx.strokeStyle = Color;
+    Ctx.lineWidth = 1.5;
     Ctx.stroke();
     Ctx.beginPath();
     Ctx.fillStyle = "#fff";

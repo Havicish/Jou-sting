@@ -1,140 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css?family=Silkscreen" rel="stylesheet">
-    <title>Jou-sting!</title>
-    <style>
-      body {
-        color: white;
-        font-family: 'Trebuchet MS';
-        font-size: 16px;
-        cursor: default;
-      }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css?family=Silkscreen" rel="stylesheet">
+  <title>Jou-sting!</title>
+  <style>
+    body {
+      color: white;
+      font-family: 'Trebuchet MS';
+      font-size: 16px;
+      cursor: default;
+    }
 
-      button {
-        color: black;
-        background-color: #88f;
-        border-radius: 4px;
-        border: none;
-        font-family: 'Trebuchet MS';
-      }
+    button {
+      color: black;
+      background-color: #88f;
+      border-radius: 4px;
+      border: none;
+      font-family: 'Trebuchet MS';
+    }
 
-      button:hover {
-        background-color: #aaf;
-      }
+    button:hover {
+      background-color: #aaf;
+    }
 
-      Button:active {
-        background-color: #66c;
-      }
+    Button:active {
+      background-color: #66c;
+    }
 
-      input {
-        color: black;
-        background-color: #8f8;
-        border-radius: 4px;
-        border: none;
-        font-family: 'Trebuchet MS';
-        cursor: default;
-      }
+    input {
+      color: black;
+      background-color: #8f8;
+      border-radius: 4px;
+      border: none;
+      font-family: 'Trebuchet MS';
+      cursor: default;
+    }
 
-      input[type="text"] {
-        width: 200px;
-      }
+    input[type="text"] {
+      width: 200px;
+    }
 
-      select {
-        color: black;
-        background-color: #f88;
-        border-radius: 4px;
-        border: none;
-        font-family: 'Trebuchet MS';
-        width: 250px;
-      }
+    select {
+      color: black;
+      background-color: #f88;
+      border-radius: 4px;
+      border: none;
+      font-family: 'Trebuchet MS';
+      width: 250px;
+    }
 
-      .LineBreak {
-        display: block;
-        width: 100%;
-        height: 1px;
-        background-color: #fff;
-        margin-bottom: 32px;
-        margin-top: 32px;
-      }
+    .LineBreak {
+      display: block;
+      width: 100%;
+      height: 1px;
+      background-color: #fff;
+      margin-bottom: 32px;
+      margin-top: 32px;
+    }
 
-      #CharacterColor {
-        background-color: #f00; 
-        background-image: linear-gradient(to right, #f00, #f80, #ff0, #8f0, #0f0, #0f8, #0ff, #08f, #00f, #80f, #f0f, #f08, #f00); 
-        width: 300px;
-        height: 15px;
-        border-radius: 5px;
-        outline: none;
-        -webkit-appearance: none; 
-        appearance: none;
-        width: 300px;
-      }
+    #CharacterColor {
+      background-color: #f00; 
+      background-image: linear-gradient(to right, #f00, #f80, #ff0, #8f0, #0f0, #0f8, #0ff, #08f, #00f, #80f, #f0f, #f08, #f00); 
+      width: 300px;
+      height: 15px;
+      border-radius: 5px;
+      outline: none;
+      -webkit-appearance: none; 
+      appearance: none;
+      width: 300px;
+    }
 
-      /* Optional: Further styling for cross-browser consistency (thumb) */
-      #CharacterColor::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: var(--thumb-color); /* Or any color for the thumb */
-      }
+    /* Optional: Further styling for cross-browser consistency (thumb) */
+    #CharacterColor::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: var(--thumb-color); /* Or any color for the thumb */
+    }
 
-      #CharacterColor::-moz-range-thumb {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: var(--thumb-color);
-      }
-    </style>
+    #CharacterColor::-moz-range-thumb {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: var(--thumb-color);
+    }
+  </style>
 </head>
 <body style="background-color: black; overflow: hidden;">
-    <canvas id="Canvas" style="position: absolute; inset: 0; z-index: 100; display: none;"></canvas>
-    <p id="PingDisplay" style="position: absolute; bottom: 10px; left: 10px; color: white;"></p>
-    <div id="HtmlSceneMainMenu" style="display: inline;">
-        <h1>Welcome to Jou-sting!</h1>
-        <p><strong>Version 0.0.1</strong> (This is a recode of the original Jou-sting!)</p>
-        <p style="color: #bbb;" id="TotalPlrCount">Current players: 1</p>
-        <div class="LineBreak"></div>
-        <label for="NameInput">Username:</label><br>
-        <input type="text" name="NameInput" id="NameInput" placeholder="Username" maxlength="20"><br>
-        <br>
-        <label for="CharacterColor">Character Color:</label><br>
-        <input type="range" min="0" max="360" value="0" step="10" id="CharacterColor" style="--thumb-color: hsl(0, 100%, 50%);"><br>
-        <script>
-          document.getElementById('CharacterColor').addEventListener('input', function() {
-            this.style.setProperty('--thumb-color', `hsl(${this.value}, 100%, 50%)`);
-          });
-        </script>
-        <br>
-        <br>
-        <label for="Move1Select">Move 1:</label><br>
-        <select id="Move1Select">
-          <option value="Dash">Dash</option>
-          <option value="BackDash">Back Dash</option>
-          <option value="QuickSpin">Quick Spin</option>
-        </select><br>
-        <span style="color: #bbb;" id="Move1Desc"><i>A simple dash. Cooldown: 3s</i></span><br>
-        <br>
-        <label for="Move2Select">Move 2:</label><br>
-        <select id="Move2Select">
-          <option value="Dash">Dash</option>
-          <option value="BackDash">Back Dash</option>
-          <option value="QuickSpin">Quick Spin</option>
-        </select><br>
-        <span style="color: #bbb;" id="Move2Desc"><i>A simple dash. Cooldown: 3s</i></span><br>
-        <br>
-        <br>
-        <label for="GameNameInput">Game name:</label><br>
-        <input type="text" name="GameNameInput" id="GameName" placeholder="Game name" maxlength="20"><br>
-        <button id="JoinGame">Make/join game</button>
-    </div>
-    <script src="main.js" type="module"></script>
-    <script src="userInputManager.js" type="module"></script>
-    <script src="canvasManager.js" type="module"></script>
-    <script src="scenes/mainMenuScene.js" type="module"></script>
-    <script src="scenes/gameScene.js" type="module"></script>
+  <canvas id="Canvas" style="position: absolute; inset: 0; z-index: 100; display: none;"></canvas>
+  <p id="PingDisplay" style="position: absolute; bottom: 10px; left: 10px; color: white;"></p>
+  <div id="HtmlSceneMainMenu" style="display: inline;">
+    <h1>Welcome to Jou-sting!</h1>
+    <p><strong>Version 0.0.1</strong> (This is a recode of the original Jou-sting!)</p>
+    <p style="color: #bbb;" id="TotalPlrCount">Current players: 1</p>
+    <div class="LineBreak"></div>
+    <label for="NameInput">Username:</label><br>
+    <input type="text" name="NameInput" id="NameInput" placeholder="Username" maxlength="20"><br>
+    <br>
+    <label for="CharacterColor">Character Color:</label><br>
+    <input type="range" min="0" max="360" value="0" step="10" id="CharacterColor" style="--thumb-color: hsl(0, 100%, 50%);"><br>
+    <script>
+      document.getElementById('CharacterColor').addEventListener('input', function() {
+        this.style.setProperty('--thumb-color', `hsl(${this.value}, 100%, 50%)`);
+      });
+    </script>
+    <br>
+    <br>
+    <label for="Move1Select">Move 1:</label><br>
+    <select id="Move1Select">
+      <option value="Dash">Dash</option>
+      <option value="BackDash">Back Dash</option>
+      <option value="QuickSpin">Quick Spin</option>
+    </select><br>
+    <span style="color: #bbb;" id="Move1Desc"><i>A simple dash. Cooldown: 3s</i></span><br>
+    <br>
+    <label for="Move2Select">Move 2:</label><br>
+    <select id="Move2Select">
+      <option value="Dash">Dash</option>
+      <option value="BackDash">Back Dash</option>
+      <option value="QuickSpin">Quick Spin</option>
+    </select><br>
+    <span style="color: #bbb;" id="Move2Desc"><i>A simple dash. Cooldown: 3s</i></span><br>
+    <br>
+    <br>
+    <label for="GameNameInput">Game name:</label><br>
+    <input type="text" name="GameNameInput" id="GameName" placeholder="Game name" maxlength="20"><br>
+    <button id="JoinGame">Make/join game</button>
+  </div>
+  <div id="HtmlSceneDisconnected" style="display: none;">
+    <h1>Disconnected from server</h1>
+    <p>Refresh the page.</p>
+  </div>
+  <script src="main.js" type="module"></script>
+  <script src="userInputManager.js" type="module"></script>
+  <script src="canvasManager.js" type="module"></script>
+  <script src="scenes/mainMenuScene.js" type="module"></script>
+  <script src="scenes/gameScene.js" type="module"></script>
 </body>
 </html>
