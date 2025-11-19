@@ -121,7 +121,7 @@ export class Player {
     Ctx.translate(this.X, this.Y);
     Ctx.rotate(-Camera.Rot);
     if (Camera.TrackRot)
-      Ctx.fillText(this.Name, 0, 20);
+      Ctx.fillText(this.Name, 0, 34);
     else
       Ctx.fillText(this.Name, 0, -28);
     Ctx.restore();

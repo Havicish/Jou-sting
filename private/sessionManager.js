@@ -20,6 +20,7 @@ class Player {
     this.TurnSpeed = 6.5;
     this.LanceLength = 60;
     this.BoundingBox = null;
+    this.StabbingCD = 0;
 
     this.IsClientControlled = false;
   }

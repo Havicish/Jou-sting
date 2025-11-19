@@ -2,6 +2,7 @@ import { Player } from "./classes/player.js";
 import { Camera } from "./render.js";
 import { AddUpdater } from "./updaters.js";
 import { AddObject, RemoveObject, CreateNewScene, GetAllObjectsInScene, SetScene, AddOnSceneChangeListener, RemoveOnSceneChangeListener } from "./sceneManager.js";
+//import { Server } from "ws";
 
 export let SessionsInGame = [];
 
@@ -133,11 +134,15 @@ class Session {
       let Plr = new Player();
 
       Plr = Object.assign(Plr, Session.Plr);
-      setTimeout(() => {
-        alert(JSON.stringify(Session.Plr));
-      }, 2000);
+      Plr.Id = Session.Id;
+      Plr.IsClientControlled = false;
+      console.log(Session);
 
       SessionsInGame.push(Session);
+
+      if (!FindSession(ThisSession.Id)) {
+        SessionsInGame.push(ThisSession);
+      }
 
       setTimeout(() => {
         AddObject("Game", Plr);
@@ -151,36 +156,11 @@ class Session {
     }
 
     if (API == "ServerUpdateSession") {
-      let Session = FindSession(Data.Payload.SessionId);
-      let Updates = Data.Payload.Updates;
-      let ExsistingPlr;
-
-      for (let Obj of GetAllObjectsInScene("Game")) {
-        if (Obj.Id && Obj.Id == Session.Id) {
-          ExsistingPlr = Obj;
-        }
-      }
-
-      if (!ExsistingPlr) return;
-
-      if (ExsistingPlr.Id != this.Id) {
-        for (const Key of Object.keys(Updates)) {
-          if (Object.prototype.hasOwnProperty.call(Updates, Key)) {
-            if (typeof Updates[Key] == "number") {
-              ExsistingPlr.PropsToSmoothTo[Key] = Updates[Key];
-            } else {
-              ExsistingPlr[Key] = Updates[Key];
-            }
-          }
-        }
-      } else {
-        for (const Key of Object.keys(Updates)) {
-          ExsistingPlr[Key] = Updates[Key];
-        }
-      }
+      ServerUpdateSession(this, Data);
     }
 
     if (API == "RemoveSession") {
+      try {
       let SessionId = Data.Payload.Id;
       
       // Find and remove the player object from the game scene
@@ -200,6 +180,7 @@ class Session {
 
       // Remove session from local list
       SessionsInGame = SessionsInGame.filter(s => s.Id !== SessionId);
+      } catch (err) { console.error(err); }
     }
   }
 }
@@ -232,8 +213,6 @@ AddUpdater((DT) => {
 
     if (Object.keys(Updates).length > 0) {
       let StartTime = performance.now();
-      if (Object.hasOwn(Updates, "Name"))
-        alert(Updates.Name);
       ThisSession.CallServer("UpdateSession", { Updates: Updates }, () => {
         let EndTime = performance.now();
         let Ping = EndTime - StartTime;
@@ -246,3 +225,57 @@ AddUpdater((DT) => {
   }
   ThisSession.LastPlr = Object.assign({}, ThisSession.Plr);
 }, null, -100); // Update with priority -100 to run after most other updaters
+
+
+
+let NeededUpdatesForNonExistantPlr = {};
+function ServerUpdateSession(ThisSession, Data) {
+  let Session = FindSession(Data.Payload.SessionId);
+  let Updates = Data.Payload.Updates;
+  let ExsistingPlr;
+
+  if (!Session) {
+    console.error(`Session with Id: ${Data.Payload.SessionId} not found.`);
+    return;
+  }
+
+  for (let Obj of GetAllObjectsInScene("Game")) {
+    if (Obj.Id && Obj.Id == Session.Id) {
+      ExsistingPlr = Obj;
+    }
+  }
+
+  if (!ExsistingPlr) {
+    if (!NeededUpdatesForNonExistantPlr[Session.Id]) {
+      NeededUpdatesForNonExistantPlr[Session.Id] = {};
+    }
+    for (const Key of Object.keys(Updates)) {
+      NeededUpdatesForNonExistantPlr[Session.Id][Key] = Updates[Key];
+    }
+    return;
+  }
+
+  if (NeededUpdatesForNonExistantPlr[Session.Id]) {
+    for (const Key of Object.keys(NeededUpdatesForNonExistantPlr[Session.Id])) {
+      if (Object.prototype.hasOwnProperty.call(NeededUpdatesForNonExistantPlr[Session.Id], Key)) {
+        Updates[Key] = NeededUpdatesForNonExistantPlr[Session.Id][Key];
+      }
+    }
+  }
+
+  if (ExsistingPlr.Id != ThisSession.Id) {
+    for (const Key of Object.keys(Updates)) {
+      if (Object.prototype.hasOwnProperty.call(Updates, Key)) {
+        if (typeof Updates[Key] == "number") {
+          ExsistingPlr.PropsToSmoothTo[Key] = Updates[Key];
+        } else {
+          ExsistingPlr[Key] = Updates[Key];
+        }
+      }
+    }
+  } else {
+    for (const Key of Object.keys(Updates)) {
+      ExsistingPlr[Key] = Updates[Key];
+    }
+  }
+}

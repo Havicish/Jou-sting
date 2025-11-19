@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("JoinGame").addEventListener("click", () => {
     try {
       CreateNewScene("Game");
+      ThisSession.Plr.Name = document.getElementById("NameInput").value || "Unnamed";
       ThisSession.CallServer("JoinGame", { GameName: document.getElementById("GameName").value }, (Response) => {
         ThisSession.GameName = Response.GameName;
         SetScene("Game");

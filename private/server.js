@@ -63,10 +63,10 @@ WSS.on("connection", (Socket) => {
   });
 
   Socket.on("close", () => {
-    SessionDisconnected(Socket);
-
     const OnRemoveSession = require("./serverGameManager.js").OnRemoveSession;
     OnRemoveSession(Socket);
+
+    SessionDisconnected(Socket);
   });
 });
 

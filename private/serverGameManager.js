@@ -112,7 +112,7 @@ function Start() {
     LastRecTime = Now;
 
     Games.forEach((Game) => {
-      CheckForPlrStabs(Game);
+      CheckForPlrStabs(Game, DT);
     });
   }, 1000 / 60); // 60 times per second
 }
@@ -122,7 +122,7 @@ function OnRemoveSession(Socket) {
   if (!Session) return;
   
   for (let Game of Games) {
-    Game.Plrs = Game.Plrs.filter(Plr => Plr.Id != Session.Id);
+    Game.Plrs = Game.Sessions.filter(Plr => Plr.Id != Session.Id);
   }
 }
 
@@ -130,29 +130,41 @@ function Distance(X1, Y1, X2, Y2) {
   return Math.sqrt(Math.pow(X1 - X2, 2) + Math.pow(Y1 - Y2, 2));
 }
 
-function CheckForPlrStabs(Game) {
+function CheckForPlrStabs(Game, DT) {
+  let ThingsToUpdate = [];
   for (let Session of Game.Sessions) {
+    let Plr = Session.Plr;
+
     for (let Session2 of Game.Sessions) {
-      let Plr = Session.Plr;
       let Plr2 = Session2.Plr;
       if (Plr.Id == Plr2.Id) continue;
 
       let Dist = Distance(Plr.X + Math.cos(Plr.Rot) * Plr.LanceLength, Plr.Y + Math.sin(Plr.Rot) * Plr.LanceLength, Plr2.X + Math.cos(Plr2.Rot), Plr2.Y + Math.sin(Plr2.Rot));
 
-      if (Dist < 10) {
-        Plr.VelX -= Math.cos(Plr.Rot) * 5;
-        Plr.VelY -= Math.sin(Plr.Rot) * 5;
+      if (Dist < 30 && Plr.StabbingCD <= 0) {
+        Plr.VelX -= Math.cos(Plr.Rot) * 1000;
+        Plr.VelY -= Math.sin(Plr.Rot) * 1000;
+        Plr.StabbingCD = 0.25;
+        Plr2.VelX += Math.cos(Plr.Rot) * 500;
+        Plr2.VelY += Math.sin(Plr.Rot) * 500;
 
-        Session.Socket.send(JSON.stringify({ 
-          ServerPush: {
-            API: "ServerUpdateSession",
-            Payload: { SessionId: Session.Id, Updates: { VelX: Plr.VelX, VelY: Plr.VelY }  }
-          }
-        }));
-
-        console.log("Stab");
+        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { VelX: Plr.VelX, VelY: Plr.VelY } });
+        ThingsToUpdate.push({ SessionId: Session2.Id, Updates: { VelX: Plr2.VelX, VelY: Plr2.VelY } });
       }
     }
+
+    Plr.StabbingCD -= DT;
+  }
+
+  for (let Session of Game.Sessions) {
+    let Updates = ThingsToUpdate.find(t => t.SessionId == Session.Id);
+    if (!Updates) continue;
+    Session.Socket.send(JSON.stringify({ 
+      ServerPush: {
+        API: "ServerUpdateSession",
+        Payload: Updates
+      }
+    }));
   }
 }
 

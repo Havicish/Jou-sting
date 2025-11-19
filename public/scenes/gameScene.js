@@ -15,14 +15,5 @@ AddOnSceneChangeListener("Game", () => {
   let Plr = ThisSession.Plr;
   Plr.IsClientControlled = true;
   Plr.BoundingBox = MainBox;
-  Plr.Name = document.getElementById("NameInput").value || "Unnamed";
   AddObject("Game", Plr);
-  
-  // Add any existing session players to the game scene
-  for (let Session of SessionsInGame) {
-    if (Session.Plr && !Session.Plr.IsClientControlled) {
-      Session.Plr.BoundingBox = MainBox;
-      AddObject("Game", Session.Plr);
-    }
-  }
 });
