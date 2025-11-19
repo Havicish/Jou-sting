@@ -133,6 +133,9 @@ class Session {
       let Plr = new Player();
 
       Plr = Object.assign(Plr, Session.Plr);
+      setTimeout(() => {
+        alert(JSON.stringify(Session.Plr));
+      }, 2000);
 
       SessionsInGame.push(Session);
 
@@ -160,13 +163,19 @@ class Session {
 
       if (!ExsistingPlr) return;
 
-      for (const Key of Object.keys(Updates)) {
-        if (Object.prototype.hasOwnProperty.call(Updates, Key)) {
-          if (typeof Updates[Key] == "number") {
-            ExsistingPlr.PropsToSmoothTo[Key] = Updates[Key];
-          } else {
-            ExsistingPlr[Key] = Updates[Key];
+      if (ExsistingPlr.Id != this.Id) {
+        for (const Key of Object.keys(Updates)) {
+          if (Object.prototype.hasOwnProperty.call(Updates, Key)) {
+            if (typeof Updates[Key] == "number") {
+              ExsistingPlr.PropsToSmoothTo[Key] = Updates[Key];
+            } else {
+              ExsistingPlr[Key] = Updates[Key];
+            }
           }
+        }
+      } else {
+        for (const Key of Object.keys(Updates)) {
+          ExsistingPlr[Key] = Updates[Key];
         }
       }
     }
@@ -223,6 +232,8 @@ AddUpdater((DT) => {
 
     if (Object.keys(Updates).length > 0) {
       let StartTime = performance.now();
+      if (Object.hasOwn(Updates, "Name"))
+        alert(Updates.Name);
       ThisSession.CallServer("UpdateSession", { Updates: Updates }, () => {
         let EndTime = performance.now();
         let Ping = EndTime - StartTime;

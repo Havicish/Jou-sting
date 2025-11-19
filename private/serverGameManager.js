@@ -80,7 +80,7 @@ function Start() {
 
       let ChangesMade = {};
       for (let Key of Object.keys(Payload.Updates)) {
-        if (GetPropsAllowedToChange().indexOf(Key) > 0) {
+        if (GetPropsAllowedToChange().includes(Key)) {
           ChangesMade[Key] = Payload.Updates[Key];
           Session.Plr[Key] = Payload.Updates[Key];
         } else {
