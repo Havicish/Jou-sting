@@ -13,7 +13,7 @@ export class Player {
     this.VelY = 0;
     this.Rot = 0;
     this.VelRot = 0;
-    this.Health = 1;
+    this.Health = 100;
     this.MaxHealth = 100;
     this.Move1CD = 3;
     this.Move2CD = 0;

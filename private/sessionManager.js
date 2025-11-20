@@ -10,7 +10,7 @@ class Player {
     this.VelY = 0;
     this.Rot = 0;
     this.VelRot = 0;
-    this.Health = 50;
+    this.Health = 100;
     this.Move1CD = 3;
     this.Move2CD = 0;
     this.MaxMove1CD = 3;
@@ -33,24 +33,12 @@ class Session {
     this.Id = Id;
     this.Socket = Socket;
 
-    this.ServerSetProps = {};
-
     this.GameName = null;
 
     this.Plr = new Player();
     this.Plr.Id = this.Id;
 
     this.PropertiesAllowedToSet = GetPropsAllowedToChange();
-  }
-
-  ServerSetProp(Prop, Value) {
-    this[Prop] = Value;
-    this.ServerSetProps[Prop] = Value;
-  }
-
-  ServerSetPlrProp(Prop, Value) {
-    this[Prop] = Value;
-    this.ServerSetProps.Plr[Prop] = Value;
   }
 }
 
