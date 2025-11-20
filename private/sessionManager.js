@@ -11,6 +11,7 @@ class Player {
     this.Rot = 0;
     this.VelRot = 0;
     this.Health = 100;
+    this.MaxHealth = 100;
     this.Move1CD = 3;
     this.Move2CD = 0;
     this.MaxMove1CD = 3;
@@ -23,6 +24,7 @@ class Player {
     this.StabbingCD = 0;
     this.Hue = 0;
     this.DeadTime = 0;
+    this.LastHitBy = null;
 
     this.IsClientControlled = false;
   }

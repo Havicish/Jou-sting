@@ -5,6 +5,7 @@ class Game {
   constructor(Name) {
     this.Name = Name;
     this.Sessions = [];
+    this.Bullets = [];
   }
 }
 
@@ -18,6 +19,18 @@ function FindSession(Id) {
       return Session
   }
   return null;
+}
+
+function UpdateAllSessions(Game, SessionId, Updates) {
+  for (let Session of Game.Sessions) {
+    if (Session.Id == SessionId) continue;
+    Session.Socket.send(JSON.stringify({ 
+      ServerPush: {
+        API: "ServerUpdateSession",
+        Payload: { SessionId, Updates }
+      }
+    }));
+  }
 }
 
 let Games = [];
@@ -104,6 +117,37 @@ function Start() {
     }
   });
 
+  const BulletClass = require("./bullet.js").Bullet;
+  AddAPIListener("PlayerShoot", (Payload, Socket) => {
+    try {
+      let Session = FindSession(Payload.SessionId);
+      if (!Session) return { Success: false, Error: "Session not found" };
+
+      let ThisGame = FindGame(Session.GameName);
+      if (!ThisGame) return { Success: false, Error: "Game not found" };
+
+      let Plr = Session.Plr;
+
+      let Bullet = new BulletClass(Plr.X, Plr.Y, Plr.Rot, Plr.Id);
+      ThisGame.Bullets.push(Bullet);
+
+      for (let Session2 of GetSessions()) {
+        if (Session2.GameName != ThisGame.Name)
+          continue;
+        Session2.Socket.send(JSON.stringify({ 
+          ServerPush: {
+            API: "PlayerShotBullet",
+            Payload: { Bullet }
+          }
+        }));
+      }
+
+      return { Success: true };
+    } catch (err) {
+      return { Success: false, Error: err.message };
+    }
+  });
+
   let LastRecTime = Date.now();
   setInterval(() => {
     let Now = Date.now();
@@ -141,25 +185,29 @@ function Distance(X1, Y1, X2, Y2) {
 
 function CheckForPlrStabs(Game, DT) {
   let ThingsToUpdate = [];
+
   for (let Session of Game.Sessions) {
     let Plr = Session.Plr;
 
+    if (Plr.DeadTime > 0) continue;
+
     for (let Session2 of Game.Sessions) {
       let Plr2 = Session2.Plr;
-      if (Plr.Id == Plr2.Id) continue;
+      if (Plr.Id == Plr2.Id || Plr2.DeadTime > 0) continue;
 
       let Dist = Distance(Plr.X + Math.cos(Plr.Rot) * Plr.LanceLength, Plr.Y + Math.sin(Plr.Rot) * Plr.LanceLength, Plr2.X + Math.cos(Plr2.Rot), Plr2.Y + Math.sin(Plr2.Rot));
 
       if (Dist < 30 && Plr.StabbingCD <= 0) {
-        Plr.VelX -= Math.cos(Plr.Rot) * 750;
-        Plr.VelY -= Math.sin(Plr.Rot) * 750;
+        Plr.VelX = Math.cos(Plr.Rot) * -750;
+        Plr.VelY = Math.sin(Plr.Rot) * -750;
         Plr.StabbingCD = 0.25;
-        Plr2.VelX += Math.cos(Plr.Rot) * 500;
-        Plr2.VelY += Math.sin(Plr.Rot) * 500;
+        Plr2.VelX = Math.cos(Plr.Rot) * 500;
+        Plr2.VelY = Math.sin(Plr.Rot) * 500;
         Plr2.Health -= 10;
+        Plr2.LastHitBy = Plr.Id;
 
         ThingsToUpdate.push({ SessionId: Session.Id, Updates: { VelX: Plr.VelX, VelY: Plr.VelY } });
-        ThingsToUpdate.push({ SessionId: Session2.Id, Updates: { VelX: Plr2.VelX, VelY: Plr2.VelY, Health: Plr2.Health } });
+        ThingsToUpdate.push({ SessionId: Session2.Id, Updates: { VelX: Plr2.VelX, VelY: Plr2.VelY, Health: Plr2.Health, LastHitBy: Plr2.LastHitBy } });
       }
     }
 
@@ -169,22 +217,35 @@ function CheckForPlrStabs(Game, DT) {
   for (let Session of Game.Sessions) {
     let Updates = ThingsToUpdate.find(t => t.SessionId == Session.Id);
     if (!Updates) continue;
-    Session.Socket.send(JSON.stringify({ 
-      ServerPush: {
-        API: "ServerUpdateSession",
-        Payload: Updates
-      }
-    }));
+    for (let Session2 of Game.Sessions) {
+      Session2.Socket.send(JSON.stringify({ 
+        ServerPush: {
+          API: "ServerUpdateSession",
+          Payload: Updates
+        }
+      }));
+    }
   }
 }
 
 function PlrDeaths(Game, DT) {
   let ThingsToUpdate = [];
+
   for (let Session of Game.Sessions) {
     let Plr = Session.Plr;
 
     if (Plr.Health <= 0 && Plr.DeadTime <= 0) {
       Plr.DeadTime = 10;
+      let Killer = Game.Sessions.find(s => s.Plr.Id == Plr.LastHitBy);
+      Killer.Plr.Health = Math.min(Killer.Plr.Health + 70, Killer.Plr.MaxHealth);
+      for (let Session2 of Game.Sessions) {
+        Session2.Socket.send(JSON.stringify({
+          ServerPush: {
+            API: "ServerUpdateSession",
+            Payload: { SessionId: Killer.Id, Updates: { Health: Killer.Plr.Health } }
+          }
+        }));
+      }
     }
 
     if (Plr.DeadTime > 0) {
@@ -195,10 +256,58 @@ function PlrDeaths(Game, DT) {
         Plr.X = Math.random() * 2000 - 1000;
         Plr.Y = Math.random() * 2000 - 1000;
 
-        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, X: Plr.X, Y: Plr.Y } });
+        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, X: Plr.X, Y: Plr.Y, DeadTime: -1 } });
+      } else {
+        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { DeadTime: Plr.DeadTime } });
       }
-      
-      ThingsToUpdate.push({ SessionId: Session.Id, Updates: { DeadTime: Plr.DeadTime } });
+    }
+  }
+
+  for (let Session of Game.Sessions) {
+    let Updates = ThingsToUpdate.find(t => t.SessionId == Session.Id);
+    if (!Updates) continue;
+    for (let Session2 of Game.Sessions) {
+      Session2.Socket.send(JSON.stringify({ 
+        ServerPush: {
+          API: "ServerUpdateSession",
+          Payload: Updates
+        }
+      }));
+    }
+  }
+}
+
+function CalcBullets(Game, DT) {
+  let ThingsToUpdate = [];
+
+  for (let Bullet of Game.Bullets) {
+    Bullet.Update(DT);
+
+    for (let Session of Game.Sessions) {
+      let Plr = Session.Plr;
+      if (Plr.DeadTime > 0) continue;
+
+      let Dist = Distance(Bullet.X, Bullet.Y, Plr.X + Math.cos(Plr.Rot), Plr.Y + Math.sin(Plr.Rot));
+
+      if (Dist < 20) {
+        Plr.Health -= 10;
+        Plr.LastHitBy = Bullet.OwnerId;
+
+        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, LastHitBy: Plr.LastHitBy } });
+      }
+    }
+  }
+
+  for (let Session of Game.Sessions) {
+    let Updates = ThingsToUpdate.find(t => t.SessionId == Session.Id);
+    if (!Updates) continue;
+    for (let Session2 of Game.Sessions) {
+      Session2.Socket.send(JSON.stringify({ 
+        ServerPush: {
+          API: "ServerUpdateSession",
+          Payload: Updates
+        }
+      }));
     }
   }
 }

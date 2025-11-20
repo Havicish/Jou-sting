@@ -7,7 +7,7 @@ export class BoundingBox {
     this.Width = Width;
     this.Height = Height;
     this.Color = "#fff";
-    this.DotCount = 30;
+    this.DotCount = 40;
     this.DotColor = "rgba(255, 255, 255, 0.5)";
   }
 

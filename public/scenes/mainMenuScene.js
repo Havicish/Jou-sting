@@ -10,7 +10,9 @@ let ShouldUpdateTotalPlrCount = true;
 let Descriptions = {
   "Dash": "A simple dash. Cooldown: 3s",
   "BackDash": "A simple backwards dash. Cooldown: 2s",
-  "QuickSpin": "An immediate 180 degree spin. No cooldown"
+  "QuickSpin": "An immediate 180 degree spin. Cooldown: 0.25s",
+  "Teleport": "Instantly teleport a short distance forward. Cooldown: 6s",
+  "Shoot": "Shoot a projectile that damages the first player it hits. Cooldown: 2.5s"
 };
 
 // Declare variables at module level

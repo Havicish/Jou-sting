@@ -23,9 +23,9 @@ export function RenderAll(Objects) {
 
 AddUpdater((DT) => {
   if (Camera.Tracking) {
-    Camera.X += (Camera.Tracking.X - Camera.X) * Camera.TrackingSpeed;
-    Camera.Y += (Camera.Tracking.Y - Camera.Y) * Camera.TrackingSpeed;
+    Camera.X += (Camera.Tracking.X - Camera.X) * Camera.TrackingSpeed * DT * 60;
+    Camera.Y += (Camera.Tracking.Y - Camera.Y) * Camera.TrackingSpeed * DT * 60;
     if (Camera.TrackRot)
-      Camera.Rot += ((-Camera.Tracking.Rot - Math.PI / 2) - Camera.Rot) * Camera.TrackingSpeed;
+      Camera.Rot += ((-Camera.Tracking.Rot - Math.PI / 2) - Camera.Rot) * Camera.TrackingSpeed * DT * 60;
   }
 });

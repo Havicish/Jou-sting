@@ -92,6 +92,9 @@
 </head>
 <body style="background-color: black; overflow: hidden;">
   <canvas id="Canvas" style="position: absolute; inset: 0; z-index: 100; display: none;"></canvas>
+  <div id="Console" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 150px; background-color: rgba(0, 0, 0, 0.8); font-family: monospace; font-size: 14px; overflow-y: auto; z-index: 200; display: none;">
+
+  </div>
   <p id="PingDisplay" style="position: absolute; bottom: 10px; left: 10px; color: white;"></p>
   <div id="HtmlSceneMainMenu" style="display: inline;">
     <h1>Welcome to Jou-sting!</h1>
@@ -115,6 +118,8 @@
       <option value="Dash">Dash</option>
       <option value="BackDash">Back Dash</option>
       <option value="QuickSpin">Quick Spin</option>
+      <option value="Teleport">Teleport</option>
+      <option value="Shoot">Shoot</option>
     </select><br>
     <span style="color: #bbb;" id="Move1Desc"><i>A simple dash. Cooldown: 3s</i></span><br>
     <br>
@@ -123,6 +128,8 @@
       <option value="Dash">Dash</option>
       <option value="BackDash">Back Dash</option>
       <option value="QuickSpin">Quick Spin</option>
+      <option value="Teleport">Teleport</option>
+      <option value="Shoot">Shoot</option>
     </select><br>
     <span style="color: #bbb;" id="Move2Desc"><i>A simple dash. Cooldown: 3s</i></span><br>
     <br>
@@ -137,6 +144,7 @@
   </div>
   <script src="main.js" type="module"></script>
   <script src="userInputManager.js" type="module"></script>
+  <script src="consoleManager.js" type="module"></script>
   <script src="canvasManager.js" type="module"></script>
   <script src="scenes/mainMenuScene.js" type="module"></script>
   <script src="scenes/gameScene.js" type="module"></script>

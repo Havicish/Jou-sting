@@ -3,6 +3,8 @@ import { Camera } from "./render.js";
 import { AddUpdater } from "./updaters.js";
 import { AddObject, RemoveObject, CreateNewScene, GetAllObjectsInScene, SetScene, AddOnSceneChangeListener, RemoveOnSceneChangeListener } from "./sceneManager.js";
 import { GameState } from "./main.js";
+import { MainConsole } from "./consoleManager.js";
+import { Bullet } from "./classes/bullet.js";
 //import { Server } from "ws";
 
 export let SessionsInGame = [];
@@ -193,6 +195,13 @@ class Session {
       SessionsInGame = SessionsInGame.filter(s => s.Id !== SessionId);
       } catch (err) { console.error(err); }
     }
+
+    if (API == "PlayerShotBullet") {
+      let ServBullet = Data.Payload.Bullet;
+      let BulletObj = new Bullet(ServBullet.X, ServBullet.Y, ServBullet.Rot, ServBullet.OwnerId);
+      AddObject("Game", BulletObj);
+      MainConsole.Log(`Player ${ServBullet.OwnerId} shot a bullet from (${ServBullet.X}, ${ServBullet.Y}) at rotation ${ServBullet.Rot}`);
+    }
   }
 }
 
@@ -280,12 +289,15 @@ function ServerUpdateSession(ThisSession, Data) {
     return;
   }
 
+  // Merge cached updates if they exist
   if (NeededUpdatesForNonExistantPlr[Session.Id]) {
     for (const Key of Object.keys(NeededUpdatesForNonExistantPlr[Session.Id])) {
       if (Object.prototype.hasOwnProperty.call(NeededUpdatesForNonExistantPlr[Session.Id], Key)) {
         Updates[Key] = NeededUpdatesForNonExistantPlr[Session.Id][Key];
       }
     }
+    // Clean up after using the cached updates
+    delete NeededUpdatesForNonExistantPlr[Session.Id];
   }
 
   if (ExsistingPlr.Id != ThisSession.Id) {
@@ -299,8 +311,12 @@ function ServerUpdateSession(ThisSession, Data) {
       }
     }
   } else {
+    // Use what the server sent to this session, due to Health, Collisions, and other server stuff.
+    // This is to prevent cheating. Because if everything is client side, people can just modify their client to do whatever.
     for (const Key of Object.keys(Updates)) {
-      ExsistingPlr[Key] = Updates[Key];
+      if (Object.hasOwn(ThisSession.Plr, Key)) {
+        ThisSession.Plr[Key] = Updates[Key];
+      }
     }
   }
 }
