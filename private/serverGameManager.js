@@ -6,6 +6,7 @@ class Game {
     this.Name = Name;
     this.Sessions = [];
     this.Bullets = [];
+    this.Caltrops = [];
   }
 }
 
@@ -64,7 +65,7 @@ function Start() {
         if (!Session2.GameName && Session2.GameName != "")
           continue;
 
-        Session2.Socket.send(JSON.stringify({ 
+        Session2.Socket.send(JSON.stringify({
           ServerPush: {
             API: "SessionJoinedGame",
             Payload: { Session }
@@ -75,6 +76,25 @@ function Start() {
           ServerPush: {
             API: "SessionJoinedGame",
             Payload: { Session: Session2 }
+          }
+        }));
+      }
+
+      for (let Bullet of ThisGame.Bullets) {
+        Session.Socket.send(JSON.stringify({ 
+          ServerPush: {
+            API: "PlayerShotBullet",
+            Payload: { Bullet }
+          }
+        }));
+      }
+
+      for (let Caltrop of ThisGame.Caltrops) {
+        console.log(Caltrop);
+        Session.Socket.send(JSON.stringify({ 
+          ServerPush: {
+            API: "PlayerMadeCaltrop",
+            Payload: { Caltrop }
           }
         }));
       }
@@ -134,10 +154,43 @@ function Start() {
       for (let Session2 of GetSessions()) {
         if (Session2.GameName != ThisGame.Name)
           continue;
+
         Session2.Socket.send(JSON.stringify({ 
           ServerPush: {
             API: "PlayerShotBullet",
             Payload: { Bullet }
+          }
+        }));
+      }
+
+      return { Success: true };
+    } catch (err) {
+      return { Success: false, Error: err.message };
+    }
+  });
+
+  const CaltropClass = require("./caltrop.js").Caltrop;
+  AddAPIListener("PlayerCaltrop", (Payload, Socket) => {
+    try {
+      let Session = FindSession(Payload.SessionId);
+      if (!Session) return { Success: false, Error: "Session not found" };
+
+      let ThisGame = FindGame(Session.GameName);
+      if (!ThisGame) return { Success: false, Error: "Game not found" };
+
+      let Plr = Session.Plr;
+
+      let Caltrop = new CaltropClass(Plr.X, Plr.Y, Plr.Id);
+      ThisGame.Caltrops.push(Caltrop);
+
+      for (let Session2 of GetSessions()) {
+        if (Session2.GameName != ThisGame.Name)
+          continue;
+
+        Session2.Socket.send(JSON.stringify({ 
+          ServerPush: {
+            API: "PlayerMadeCaltrop",
+            Payload: { Caltrop }
           }
         }));
       }
@@ -157,6 +210,8 @@ function Start() {
     Games.forEach((Game) => {
       CheckForPlrStabs(Game, DT);
       PlrDeaths(Game, DT);
+      CalcBullets(Game, DT);
+      CalcCaltrops(Game, DT);
     });
   }, 1000 / 60); // 60 times per second
 }
@@ -237,14 +292,16 @@ function PlrDeaths(Game, DT) {
     if (Plr.Health <= 0 && Plr.DeadTime <= 0) {
       Plr.DeadTime = 10;
       let Killer = Game.Sessions.find(s => s.Plr.Id == Plr.LastHitBy);
-      Killer.Plr.Health = Math.min(Killer.Plr.Health + 70, Killer.Plr.MaxHealth);
-      for (let Session2 of Game.Sessions) {
-        Session2.Socket.send(JSON.stringify({
-          ServerPush: {
-            API: "ServerUpdateSession",
-            Payload: { SessionId: Killer.Id, Updates: { Health: Killer.Plr.Health } }
-          }
-        }));
+      if (Killer) {
+        Killer.Plr.Health = Math.min(Killer.Plr.Health + 70, Killer.Plr.MaxHealth);
+        for (let Session2 of Game.Sessions) {
+          Session2.Socket.send(JSON.stringify({
+            ServerPush: {
+              API: "ServerUpdateSession",
+              Payload: { SessionId: Killer.Id, Updates: { Health: Killer.Plr.Health } }
+            }
+          }));
+        }
       }
     }
 
@@ -283,15 +340,75 @@ function CalcBullets(Game, DT) {
   for (let Bullet of Game.Bullets) {
     Bullet.Update(DT);
 
+    if (Bullet.ToRemove) {
+      Game.Bullets = Game.Bullets.filter(b => b !== Bullet);
+      continue;
+    }
+
     for (let Session of Game.Sessions) {
       let Plr = Session.Plr;
-      if (Plr.DeadTime > 0) continue;
+      if (Plr.DeadTime > 0 || Session.Id == Bullet.OwnerId) continue;
 
       let Dist = Distance(Bullet.X, Bullet.Y, Plr.X + Math.cos(Plr.Rot), Plr.Y + Math.sin(Plr.Rot));
 
-      if (Dist < 20) {
+      if (Dist < 60) {
         Plr.Health -= 10;
         Plr.LastHitBy = Bullet.OwnerId;
+        Game.Bullets = Game.Bullets.filter(b => b !== Bullet);
+
+        for (let Session2 of Game.Sessions) {
+          Session2.Socket.send(JSON.stringify({
+            ServerPush: {
+              API: "RemoveBullet",
+              Payload: { BulletId: Bullet.Id }
+            }
+          }));
+        }
+
+        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, LastHitBy: Plr.LastHitBy } });
+      }
+    }
+  }
+
+  for (let Session of Game.Sessions) {
+    let Updates = ThingsToUpdate.find(t => t.SessionId == Session.Id);
+    if (!Updates) continue;
+    for (let Session2 of Game.Sessions) {
+      Session2.Socket.send(JSON.stringify({ 
+        ServerPush: {
+          API: "ServerUpdateSession",
+          Payload: Updates
+        }
+      }));
+    }
+  }
+}
+
+function CalcCaltrops(Game, DT) {
+  let ThingsToUpdate = [];
+
+  for (let Caltrop of Game.Caltrops) {
+    Caltrop.Update(DT);
+
+    for (let Session of Game.Sessions) {
+      let Plr = Session.Plr;
+      if (Plr.DeadTime > 0 || Session.Id == Caltrop.OwnerId) continue;
+
+      let Dist = Distance(Caltrop.X, Caltrop.Y, Plr.X + Math.cos(Plr.Rot), Plr.Y + Math.sin(Plr.Rot));
+
+      if (Dist < 60) {
+        Plr.Health -= 10;
+        Plr.LastHitBy = Caltrop.OwnerId;
+        Game.Bullets = Game.Bullets.filter(b => b !== Caltrop);
+
+        for (let Session2 of Game.Sessions) {
+          Session2.Socket.send(JSON.stringify({
+            ServerPush: {
+              API: "RemoveCaltrop",
+              Payload: { CaltropId: Caltrop.Id }
+            }
+          }));
+        }
 
         ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, LastHitBy: Plr.LastHitBy } });
       }

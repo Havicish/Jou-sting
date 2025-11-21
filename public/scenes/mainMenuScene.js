@@ -12,7 +12,8 @@ let Descriptions = {
   "BackDash": "A simple backwards dash. Cooldown: 2s",
   "QuickSpin": "An immediate 180 degree spin. Cooldown: 0.25s",
   "Teleport": "Instantly teleport a short distance forward. Cooldown: 6s",
-  "Shoot": "Shoot a projectile that damages the first player it hits. Cooldown: 2.5s"
+  "Shoot": "Shoot a projectile that damages the first player it hits. Cooldown: 2.5s",
+  "Caltrop": "Drops a caltrop that damages players who touch it. Cooldown: 3.5"
 };
 
 // Declare variables at module level

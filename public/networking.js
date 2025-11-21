@@ -5,6 +5,7 @@ import { AddObject, RemoveObject, CreateNewScene, GetAllObjectsInScene, SetScene
 import { GameState } from "./main.js";
 import { MainConsole } from "./consoleManager.js";
 import { Bullet } from "./classes/bullet.js";
+import { Caltrop } from "./classes/caltrop.js";
 //import { Server } from "ws";
 
 export let SessionsInGame = [];
@@ -198,9 +199,37 @@ class Session {
 
     if (API == "PlayerShotBullet") {
       let ServBullet = Data.Payload.Bullet;
-      let BulletObj = new Bullet(ServBullet.X, ServBullet.Y, ServBullet.Rot, ServBullet.OwnerId);
+      let BulletObj = new Bullet(ServBullet.X, ServBullet.Y, ServBullet.Rot, ServBullet.OwnerId, ServBullet.Id);
       AddObject("Game", BulletObj);
       MainConsole.Log(`Player ${ServBullet.OwnerId} shot a bullet from (${ServBullet.X}, ${ServBullet.Y}) at rotation ${ServBullet.Rot}`);
+    }
+
+    if (API == "RemoveBullet") {
+      let BulletId = Data.Payload.BulletId;
+      for (let Obj of GetAllObjectsInScene("Game")) {
+        if (Obj.Id == BulletId) {
+          RemoveObject("Game", Obj);
+          break;
+        }
+      }
+    }
+
+    if (API == "PlayerMadeCaltrop") {
+      MainConsole.Log("e");
+      let ServCaltrop = Data.Payload.Caltrop;
+      let CaltropObj = new Caltrop(ServCaltrop.X, ServCaltrop.Y, ServCaltrop.Rot, ServCaltrop.OwnerId, ServCaltrop.Id);
+      AddObject("Game", CaltropObj);
+      MainConsole.Log(`Player ${ServCaltrop.OwnerId} made a caltrop at (${ServCaltrop.X}, ${ServCaltrop.Y})`);
+    }
+
+    if (API == "RemoveCaltrop") {
+      let CaltropId = Data.Payload.BulletId;
+      for (let Obj of GetAllObjectsInScene("Game")) {
+        if (Obj.Id == CaltropId) {
+          RemoveObject("Game", Obj);
+          break;
+        }
+      }
     }
   }
 }
