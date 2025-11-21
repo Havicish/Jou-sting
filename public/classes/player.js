@@ -11,7 +11,8 @@ let MoveCooldowns = {
   "QuickSpin": 0.25,
   "Teleport": 6,
   "Shoot": 2.5,
-  "Caltrop": 3.5
+  "Caltrop": 3.5,
+  "Emp": 5
 };
 
 export class Player {
@@ -41,6 +42,7 @@ export class Player {
     this.Hue = 0;
     this.DeadTime = 0;
     this.LastHitBy = null;
+    this.ZIndex = 100;
 
     this.PropsToSmoothTo = {};
     this.GeneralSmoothingFactor = 1;
@@ -234,6 +236,11 @@ export class Player {
         this.Move1CD = MoveCooldowns["Caltrop"];
       });
     }
+    if (this.Move1 == "Emp") {
+      ThisSession.CallServer("PlayerEmp", { }, () => {
+        this.Move1CD = MoveCooldowns["Emp"];
+      });
+    }
     this.Move1CD = MoveCooldowns[this.Move1];
   }
 
@@ -258,6 +265,11 @@ export class Player {
     if (this.Move2 == "Shoot") {
       ThisSession.CallServer("PlayerShoot", { }, () => {
         this.Move2CD = MoveCooldowns["Shoot"];
+      });
+    }
+    if (this.Move2 == "Caltrop") {
+      ThisSession.CallServer("PlayerCaltrop", { }, () => {
+        this.Move2CD = MoveCooldowns["Caltrop"];
       });
     }
     this.Move2CD = MoveCooldowns[this.Move2];

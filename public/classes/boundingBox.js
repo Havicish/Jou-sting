@@ -1,4 +1,5 @@
 import { Ctx } from "../canvasManager.js";
+import { MainConsole } from "../consoleManager.js";
 
 export class BoundingBox {
   constructor(X, Y, Width, Height) {

@@ -13,7 +13,8 @@ let Descriptions = {
   "QuickSpin": "An immediate 180 degree spin. Cooldown: 0.25s",
   "Teleport": "Instantly teleport a short distance forward. Cooldown: 6s",
   "Shoot": "Shoot a projectile that damages the first player it hits. Cooldown: 2.5s",
-  "Caltrop": "Drops a caltrop that damages players who touch it. Cooldown: 3.5"
+  "Caltrop": "Drops a caltrop that damages players who touch it. Cooldown: 3.5s",
+  "Emp": "Releases an electro-magnetic pulse that disables nearby players' moves. Cooldown: 5s"
 };
 
 // Declare variables at module level

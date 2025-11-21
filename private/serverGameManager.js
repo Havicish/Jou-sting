@@ -83,18 +83,17 @@ function Start() {
       for (let Bullet of ThisGame.Bullets) {
         Session.Socket.send(JSON.stringify({ 
           ServerPush: {
-            API: "PlayerShotBullet",
-            Payload: { Bullet }
+            API: "ServerAddObject",
+            Payload: { ObjectType: "Bullet", Object: Bullet }
           }
         }));
       }
 
       for (let Caltrop of ThisGame.Caltrops) {
-        console.log(Caltrop);
         Session.Socket.send(JSON.stringify({ 
           ServerPush: {
-            API: "PlayerMadeCaltrop",
-            Payload: { Caltrop }
+            API: "ServerAddObject",
+            Payload: { ObjectType: "Caltrop", Object: Caltrop }
           }
         }));
       }
@@ -157,8 +156,8 @@ function Start() {
 
         Session2.Socket.send(JSON.stringify({ 
           ServerPush: {
-            API: "PlayerShotBullet",
-            Payload: { Bullet }
+            API: "ServerAddObject",
+            Payload: { ObjectType: "Bullet", Object: Bullet }
           }
         }));
       }
@@ -189,8 +188,8 @@ function Start() {
 
         Session2.Socket.send(JSON.stringify({ 
           ServerPush: {
-            API: "PlayerMadeCaltrop",
-            Payload: { Caltrop }
+            API: "ServerAddObject",
+            Payload: { ObjectType: "Caltrop", Object: Caltrop }
           }
         }));
       }
@@ -225,6 +224,19 @@ function OnRemoveSession(Socket) {
 
   for (let Game of Games) {
     for (let [i, Session2] of Game.Sessions.entries()) {
+      let Plr = Session2.Plr;
+      let Killer = Game.Sessions.find(s => s.Plr.Id == Plr.LastHitBy);
+      if (Killer) {
+        Killer.Plr.Health = Math.min(Killer.Plr.Health + 70, Killer.Plr.MaxHealth);
+        for (let Session3 of Game.Sessions) {
+          Session3.Socket.send(JSON.stringify({
+            ServerPush: {
+              API: "ServerUpdateSession",
+              Payload: { SessionId: Killer.Id, Updates: { Health: Killer.Plr.Health } }
+            }
+          }));
+        }
+      }
       if (Session2.Id == Session.Id) {
         Game.Sessions.splice(i, 1);
         return;
@@ -355,17 +367,20 @@ function CalcBullets(Game, DT) {
         Plr.Health -= 10;
         Plr.LastHitBy = Bullet.OwnerId;
         Game.Bullets = Game.Bullets.filter(b => b !== Bullet);
+        let DirToBullet = Math.atan2(Bullet.Y - Plr.Y, Bullet.X - Plr.X);
+        Plr.VelX += Math.cos(DirToBullet) * -300;
+        Plr.VelY += Math.sin(DirToBullet) * -300;
 
         for (let Session2 of Game.Sessions) {
           Session2.Socket.send(JSON.stringify({
             ServerPush: {
-              API: "RemoveBullet",
-              Payload: { BulletId: Bullet.Id }
+              API: "ServerRemoveObject",
+              Payload: { ObjectId: Bullet.Id }
             }
           }));
         }
 
-        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, LastHitBy: Plr.LastHitBy } });
+        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, LastHitBy: Plr.LastHitBy, VelX: Plr.VelX, VelY: Plr.VelY } });
       }
     }
   }
@@ -390,6 +405,11 @@ function CalcCaltrops(Game, DT) {
   for (let Caltrop of Game.Caltrops) {
     Caltrop.Update(DT);
 
+    if (Caltrop.ToRemove) {
+      Game.Caltrops = Game.Caltrops.filter(c => c !== Caltrop);
+      continue;
+    }
+
     for (let Session of Game.Sessions) {
       let Plr = Session.Plr;
       if (Plr.DeadTime > 0 || Session.Id == Caltrop.OwnerId) continue;
@@ -399,18 +419,24 @@ function CalcCaltrops(Game, DT) {
       if (Dist < 60) {
         Plr.Health -= 10;
         Plr.LastHitBy = Caltrop.OwnerId;
-        Game.Bullets = Game.Bullets.filter(b => b !== Caltrop);
+
+        let DirToCaltrop = Math.atan2(Caltrop.Y - Plr.Y, Caltrop.X - Plr.X);
+        Plr.VelX += Math.cos(DirToCaltrop) * -300;
+        Plr.VelY += Math.sin(DirToCaltrop) * -300;
+
+        Game.Caltrops = Game.Caltrops.filter(b => b !== Caltrop);
 
         for (let Session2 of Game.Sessions) {
+          console.log("Removing caltrop due to player hit");
           Session2.Socket.send(JSON.stringify({
             ServerPush: {
-              API: "RemoveCaltrop",
-              Payload: { CaltropId: Caltrop.Id }
+              API: "ServerRemoveObject",
+              Payload: { ObjectId: Caltrop.Id }
             }
           }));
         }
 
-        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, LastHitBy: Plr.LastHitBy } });
+        ThingsToUpdate.push({ SessionId: Session.Id, Updates: { Health: Plr.Health, LastHitBy: Plr.LastHitBy, VelX: Plr.VelX, VelY: Plr.VelY } });
       }
     }
   }

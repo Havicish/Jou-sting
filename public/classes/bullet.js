@@ -3,15 +3,15 @@ import { ThisSession } from "../networking.js";
 import { GetAllObjectsInScene, RemoveObject } from "../sceneManager.js";
 
 export class Bullet {
-  constructor(X, Y, Rot, OwnerId, Id) {
-    this.X = X;
-    this.Y = Y;
-    this.OwnerId = OwnerId;
+  constructor() {
+    this.X = 0;
+    this.Y = 0;
+    this.OwnerId = 0;
     this.InitSpeed = 1000;
-    this.VelX = Math.cos(Rot) * this.InitSpeed;
-    this.VelY = Math.sin(Rot) * this.InitSpeed;
-    this.Rot = Rot;
-    this.Id = Id;
+    this.VelX = 0;
+    this.VelY = 0;
+    this.Rot = 0;
+    this.Id = 0;
   }
 
   Update(DT) {

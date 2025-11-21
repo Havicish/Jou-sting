@@ -15,5 +15,6 @@ AddOnSceneChangeListener("Game", () => {
   let Plr = ThisSession.Plr;
   Plr.IsClientControlled = true;
   Plr.BoundingBox = MainBox;
+  Plr.Id = ThisSession.Id;
   AddObject("Game", Plr);
 });

@@ -67,6 +67,7 @@ class Session {
       // Send a CreateSession request
       this.CallServer("CreateSession", {}, (Response) => {
         this.Id = Response.Id;
+        MainConsole.Log(`Your session id: ${this.Id}`);
 
         // Flush any queued messages
         while (this.PendingMessages.length > 0) {
@@ -74,6 +75,8 @@ class Session {
         }
 
         this.Plr.Id = this.Id;
+
+        SessionsInGame.push(this);
       });
     };
 
@@ -197,36 +200,41 @@ class Session {
       } catch (err) { console.error(err); }
     }
 
-    if (API == "PlayerShotBullet") {
-      let ServBullet = Data.Payload.Bullet;
-      let BulletObj = new Bullet(ServBullet.X, ServBullet.Y, ServBullet.Rot, ServBullet.OwnerId, ServBullet.Id);
-      AddObject("Game", BulletObj);
-      MainConsole.Log(`Player ${ServBullet.OwnerId} shot a bullet from (${ServBullet.X}, ${ServBullet.Y}) at rotation ${ServBullet.Rot}`);
+    if (API == "ServerAddObject") {
+      let ObjData = Data.Payload.Object;
+      let ObjType = Data.Payload.ObjectType;
+      let Obj;
+
+      MainConsole.Log(`ServerAddObject called for object type: ${ObjType}`);
+      if (ObjType == "Bullet") {
+        Obj = new Bullet();
+        Obj = Object.assign(Obj, ObjData);
+        AddObject("Game", Obj);
+      }
+      if (ObjType == "Caltrop") {
+        Obj = new Caltrop();
+        Obj = Object.assign(Obj, ObjData);
+        AddObject("Game", Obj);
+      }
     }
 
-    if (API == "RemoveBullet") {
-      let BulletId = Data.Payload.BulletId;
+    if (API == "ServerRemoveObject") {
+      let ObjectId = Data.Payload.ObjectId;
       for (let Obj of GetAllObjectsInScene("Game")) {
-        if (Obj.Id == BulletId) {
+        MainConsole.Log(`Checking object with Id: ${Obj.Id} against ObjectId to remove: ${ObjectId}`);
+        if (Obj.Id == ObjectId) {
           RemoveObject("Game", Obj);
           break;
         }
       }
     }
 
-    if (API == "PlayerMadeCaltrop") {
-      MainConsole.Log("e");
-      let ServCaltrop = Data.Payload.Caltrop;
-      let CaltropObj = new Caltrop(ServCaltrop.X, ServCaltrop.Y, ServCaltrop.Rot, ServCaltrop.OwnerId, ServCaltrop.Id);
-      AddObject("Game", CaltropObj);
-      MainConsole.Log(`Player ${ServCaltrop.OwnerId} made a caltrop at (${ServCaltrop.X}, ${ServCaltrop.Y})`);
-    }
-
-    if (API == "RemoveCaltrop") {
-      let CaltropId = Data.Payload.BulletId;
+    if (API == "ServerUpdateObject") {
+      let ObjectId = Data.Payload.ObjectId;
+      let Updates = Data.Payload.Updates;
       for (let Obj of GetAllObjectsInScene("Game")) {
-        if (Obj.Id == CaltropId) {
-          RemoveObject("Game", Obj);
+        if (Obj.Id == ObjectId) {
+          Object.assign(Obj, Updates);
           break;
         }
       }
