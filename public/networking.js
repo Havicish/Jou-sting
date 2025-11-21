@@ -6,6 +6,7 @@ import { GameState } from "./main.js";
 import { MainConsole } from "./consoleManager.js";
 import { Bullet } from "./classes/bullet.js";
 import { Caltrop } from "./classes/caltrop.js";
+import { AddChatMessage } from "./scenes/gameScene.js";
 //import { Server } from "ws";
 
 export let SessionsInGame = [];
@@ -36,7 +37,7 @@ class Session {
     this.PropertiesAllowedToSet = [
       "Name", "Hue",
       "X", "Y", "VelX", "VelY", "Rot", "VelRot",
-      "Move1", "Move2", "Move1CD", "Move2CD"
+      "Move1", "Move2", "Move1CD", "Move2CD", "MaxMove1CD", "MaxMove2CD"
     ];
     this.FloatAccuracyThreshold = 0.01; // At what point we consider float changes significant enough to send to server
   }
@@ -205,16 +206,31 @@ class Session {
       let ObjType = Data.Payload.ObjectType;
       let Obj;
 
-      MainConsole.Log(`ServerAddObject called for object type: ${ObjType}`);
-      if (ObjType == "Bullet") {
-        Obj = new Bullet();
-        Obj = Object.assign(Obj, ObjData);
-        AddObject("Game", Obj);
-      }
-      if (ObjType == "Caltrop") {
-        Obj = new Caltrop();
-        Obj = Object.assign(Obj, ObjData);
-        AddObject("Game", Obj);
+      if (GameState.CurrentScene == "Game") {
+        if (ObjType == "Bullet") {
+          Obj = new Bullet();
+          Obj = Object.assign(Obj, ObjData);
+          AddObject("Game", Obj);
+        }
+        if (ObjType == "Caltrop") {
+          Obj = new Caltrop();
+          Obj = Object.assign(Obj, ObjData);
+          AddObject("Game", Obj);
+        }
+      } else {
+        let Listener = AddOnSceneChangeListener("Game", () => {
+          if (ObjType == "Bullet") {
+            Obj = new Bullet();
+            Obj = Object.assign(Obj, ObjData);
+            AddObject("Game", Obj);
+          }
+          if (ObjType == "Caltrop") {
+            Obj = new Caltrop();
+            Obj = Object.assign(Obj, ObjData);
+            AddObject("Game", Obj);
+          }
+          RemoveOnSceneChangeListener("Game", Listener);
+        });
       }
     }
 
@@ -237,6 +253,15 @@ class Session {
           Object.assign(Obj, Updates);
           break;
         }
+      }
+    }
+
+    if (API == "AddChatMessage") {
+      let Session = FindSession(Data.Payload.SessionId);
+      let Message = Data.Payload.Message;
+      if (Session) {
+        AddChatMessage(Session, Message);
+        MainConsole.Log(`[Chat] ${Session.Plr.Name}: ${Message}`);
       }
     }
   }

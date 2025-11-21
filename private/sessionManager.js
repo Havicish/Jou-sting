@@ -25,6 +25,7 @@ class Player {
     this.Hue = 0;
     this.DeadTime = 0;
     this.LastHitBy = null;
+    this.Size = 1;
 
     this.IsClientControlled = false;
   }
@@ -108,7 +109,7 @@ function GetPropsAllowedToChange() {
   return [
       "Name", "Hue",
       "X", "Y", "VelX", "VelY", "Rot", "VelRot",
-      "Move1", "Move2", "Move1CD", "Move2CD"
+      "Move1", "Move2", "Move1CD", "Move2CD", "MaxMove1CD", "MaxMove2CD"
     ];
 }
 

@@ -43,6 +43,7 @@ export class Player {
     this.DeadTime = 0;
     this.LastHitBy = null;
     this.ZIndex = 100;
+    this.Size = 1;
 
     this.PropsToSmoothTo = {};
     this.GeneralSmoothingFactor = 1;
@@ -156,26 +157,26 @@ export class Player {
     let Color20Percent = `hsla(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%, 0.2)`;
 
     Ctx.beginPath();
-    Ctx.arc(this.X, this.Y, 10, 0, Math.PI * 2);
+    Ctx.arc(this.X, this.Y, 10 * this.Size, 0, Math.PI * 2);
     Ctx.fillStyle = Color;
     Ctx.fill();
     Ctx.beginPath();
-    Ctx.arc(this.X, this.Y, 22, 0, Math.PI * 2);
+    Ctx.arc(this.X, this.Y, 22 * this.Size, 0, Math.PI * 2);
     Ctx.strokeStyle = Color20Percent;
-    Ctx.lineWidth = 8;
+    Ctx.lineWidth = 8 * this.Size;
     Ctx.stroke();
     Ctx.beginPath();
-    Ctx.arc(this.X, this.Y, 22, this.Rot, this.Rot + Math.PI * (1 - (this.Move2CD / this.MaxMove2CD)));
+    Ctx.arc(this.X, this.Y, 22 * this.Size, this.Rot, this.Rot + Math.PI * (1 - (this.Move2CD / this.MaxMove2CD)));
     Ctx.strokeStyle = Color40Percent;
-    Ctx.lineWidth = 8;
+    Ctx.lineWidth = 8 * this.Size;
     Ctx.stroke();
     Ctx.beginPath();
-    Ctx.arc(this.X, this.Y, 22, this.Rot - (Math.PI * (1 - (this.Move1CD / this.MaxMove1CD))), this.Rot);
+    Ctx.arc(this.X, this.Y, 22 * this.Size, this.Rot - (Math.PI * (1 - (this.Move1CD / this.MaxMove1CD))), this.Rot);
     Ctx.strokeStyle = Color40Percent;
-    Ctx.lineWidth = 8;
+    Ctx.lineWidth = 8 * this.Size;
     Ctx.stroke();
     Ctx.beginPath();
-    Ctx.moveTo(this.X + Math.cos(this.Rot) * 10, this.Y + Math.sin(this.Rot) * 10);
+    Ctx.moveTo(this.X + Math.cos(this.Rot) * 10 * this.Size, this.Y + Math.sin(this.Rot) * 10 * this.Size);
     Ctx.lineTo(this.X + Math.cos(this.Rot) * this.LanceLength, this.Y + Math.sin(this.Rot) * this.LanceLength);
     Ctx.strokeStyle = Color;
     Ctx.lineWidth = 1.5;
@@ -186,10 +187,11 @@ export class Player {
     Ctx.save();
     Ctx.translate(this.X, this.Y);
     Ctx.rotate(-Camera.Rot);
+    Ctx.font = (11 * this.Size) + "px Arial";
     if (Camera.TrackRot)
-      Ctx.fillText(this.Name, 0, 34);
+      Ctx.fillText(this.Name, 0, 34 * this.Size);
     else
-      Ctx.fillText(this.Name, 0, -28);
+      Ctx.fillText(this.Name, 0, -28 * this.Size);
     Ctx.restore();
   }
 

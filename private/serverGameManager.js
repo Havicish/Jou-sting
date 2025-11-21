@@ -7,6 +7,7 @@ class Game {
     this.Sessions = [];
     this.Bullets = [];
     this.Caltrops = [];
+    this.ChatMessages = [];
   }
 }
 
@@ -196,6 +197,33 @@ function Start() {
 
       return { Success: true };
     } catch (err) {
+      return { Success: false, Error: err.message };
+    }
+  });
+
+  AddAPIListener("SendChatMessage", (Payload, Socket) => {
+    try {
+      let Session = FindSession(Payload.SessionId);
+      if (!Session) return { Success: false, Error: "Session not found" };
+
+      let ThisGame = FindGame(Session.GameName);
+      if (!ThisGame) return { Success: false, Error: "Game not found" };
+
+      for (let Session2 of GetSessions()) {
+        if (Session2.GameName != ThisGame.Name)
+          continue;
+
+        Session2.Socket.send(JSON.stringify({ 
+          ServerPush: {
+            API: "AddChatMessage",
+            Payload: { Session: { Plr: { Name: Session.Plr.Name, Hue: Session.Plr.Hue } }, Message: Payload.Message }
+          }
+        }));
+      }
+
+      return { Success: true };
+    } catch (err) {
+      console.error(err);
       return { Success: false, Error: err.message };
     }
   });
