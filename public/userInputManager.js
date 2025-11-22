@@ -41,7 +41,8 @@ document.addEventListener("keydown", (Event) => {
       }
       KeysInChat = [];
       document.getElementById("ChatInput").blur();
-      SentChatMessage(document.getElementById("ChatInput").value);
+      if (document.getElementById("ChatInput").value != "")
+        SentChatMessage(document.getElementById("ChatInput").value);
       document.getElementById("ChatInput").value = "";
     }
     return;

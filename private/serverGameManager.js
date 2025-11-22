@@ -79,7 +79,25 @@ function Start() {
             Payload: { Session: Session2 }
           }
         }));
+
+        setTimeout(() => {
+          Session2.Socket.send(JSON.stringify({ 
+            ServerPush: {
+              API: "AddChatMessage",
+              Payload: { Name: "[SERVER]", Hue: null, Message: `${Session.Plr.Name} has joined.` }
+            }
+          }));
+        }, 100);
       }
+
+      setTimeout(() => {
+        Session.Socket.send(JSON.stringify({ 
+          ServerPush: {
+            API: "AddChatMessage",
+            Payload: { Name: "[SERVER]", Hue: null, Message: `${Session.Plr.Name} has joined.` }
+          }
+        }));
+      }, 100);
 
       for (let Bullet of ThisGame.Bullets) {
         Session.Socket.send(JSON.stringify({ 
@@ -95,6 +113,15 @@ function Start() {
           ServerPush: {
             API: "ServerAddObject",
             Payload: { ObjectType: "Caltrop", Object: Caltrop }
+          }
+        }));
+      }
+
+      for (let ChatMsg of ThisGame.ChatMessages) {
+        Session.Socket.send(JSON.stringify({ 
+          ServerPush: {
+            API: "AddChatMessage",
+            Payload: { Name: ChatMsg.Name, Hue: ChatMsg.Hue, Message: ChatMsg.Message }
           }
         }));
       }
@@ -216,10 +243,12 @@ function Start() {
         Session2.Socket.send(JSON.stringify({ 
           ServerPush: {
             API: "AddChatMessage",
-            Payload: { Session: { Plr: { Name: Session.Plr.Name, Hue: Session.Plr.Hue } }, Message: Payload.Message }
+            Payload: { Name: Session.Plr.Name, Hue: Session.Plr.Hue, Message: Payload.Message }
           }
         }));
       }
+
+      ThisGame.ChatMessages.push({ Name: Session.Plr.Name, Hue: Session.Plr.Hue, Message: Payload.Message });
 
       return { Success: true };
     } catch (err) {

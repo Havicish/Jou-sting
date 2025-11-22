@@ -182,7 +182,7 @@ export class Player {
     Ctx.lineWidth = 1.5;
     Ctx.stroke();
     Ctx.beginPath();
-    Ctx.fillStyle = "#fff";
+    Ctx.fillStyle = `hsl(${this.Hue}, 100%, 50%)`;
     Ctx.textAlign = "center";
     Ctx.save();
     Ctx.translate(this.X, this.Y);

@@ -257,12 +257,10 @@ class Session {
     }
 
     if (API == "AddChatMessage") {
-      let Session = FindSession(Data.Payload.SessionId);
+      let Name = Data.Payload.Name;
+      let Hue = Data.Payload.Hue;
       let Message = Data.Payload.Message;
-      if (Session) {
-        AddChatMessage(Session, Message);
-        MainConsole.Log(`[Chat] ${Session.Plr.Name}: ${Message}`);
-      }
+      AddChatMessage(Name, Hue, Message);
     }
   }
 }
