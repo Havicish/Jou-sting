@@ -410,6 +410,14 @@ function CalcBullets(Game, DT) {
     Bullet.Update(DT);
 
     if (Bullet.ToRemove) {
+      for (let Session2 of Game.Sessions) {
+        Session2.Socket.send(JSON.stringify({
+          ServerPush: {
+            API: "ServerRemoveObject",
+            Payload: { ObjectId: Bullet.Id }
+          }
+        }));
+      }
       Game.Bullets = Game.Bullets.filter(b => b !== Bullet);
       continue;
     }
@@ -420,8 +428,11 @@ function CalcBullets(Game, DT) {
 
       let Dist = Distance(Bullet.X, Bullet.Y, Plr.X + Math.cos(Plr.Rot), Plr.Y + Math.sin(Plr.Rot));
 
-      if (Dist < 60) {
-        Plr.Health -= 10;
+      if (Dist < 40) {
+        if (Bullet.TimeAlive < 0.3)
+          Plr.Health -= 2;
+        else
+          Plr.Health -= 10;
         Plr.LastHitBy = Bullet.OwnerId;
         Game.Bullets = Game.Bullets.filter(b => b !== Bullet);
         let DirToBullet = Math.atan2(Bullet.Y - Plr.Y, Bullet.X - Plr.X);

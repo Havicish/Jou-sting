@@ -19,6 +19,8 @@ class Bullet {
 
     if (this.X < -1000 || this.X > 1000 || this.Y < -1000 || this.Y > 1000)
       this.ToRemove = true;
+
+    //if (this.TimeAlive > 0.55) this.ToRemove = true;
   }
 }
 

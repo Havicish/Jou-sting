@@ -12,11 +12,14 @@ export class Bullet {
     this.VelY = 0;
     this.Rot = 0;
     this.Id = 0;
+    this.TimeAlive = 0;
   }
 
   Update(DT) {
     this.X += this.VelX * DT;
     this.Y += this.VelY * DT;
+
+    this.TimeAlive += DT;
 
     if (this.X < -1000 || this.X > 1000 || this.Y < -1000 || this.Y > 1000) {
       for (let Obj of GetAllObjectsInScene("Game")) {
@@ -34,9 +37,15 @@ export class Bullet {
     
     Ctx.beginPath();
     if (this.OwnerId != ThisSession.Plr.Id)
-      Ctx.fillStyle = "#f00";
+      if (this.TimeAlive < 0.3)
+        Ctx.fillStyle = "#ff0";
+      else
+        Ctx.fillStyle = "#f00";
     else
-      Ctx.fillStyle = "#0f0";
+      if (this.TimeAlive < 0.3)
+        Ctx.fillStyle = "#ff0";
+      else
+        Ctx.fillStyle = "#0f0";
     Ctx.arc(this.X, this.Y, 5, 0, Math.PI * 2);
     Ctx.fill();
     Ctx.closePath();
