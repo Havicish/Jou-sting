@@ -7,6 +7,7 @@ import { MainConsole } from "./consoleManager.js";
 import { Bullet } from "./classes/bullet.js";
 import { Caltrop } from "./classes/caltrop.js";
 import { AddChatMessage } from "./scenes/gameScene.js";
+import { DamageIndicator } from "./classes/damageIndicator.js";
 //import { Server } from "ws";
 
 export let SessionsInGame = [];
@@ -261,6 +262,14 @@ class Session {
       let Hue = Data.Payload.Hue;
       let Message = Data.Payload.Message;
       AddChatMessage(Name, Hue, Message);
+    }
+
+    if (API == "DamageIndicator") {
+      let X = Data.Payload.X;
+      let Y = Data.Payload.Y;
+      let Amount = Data.Payload.Amount;
+      let Indicator = new DamageIndicator(X, Y, Amount);
+      AddObject("Game", Indicator);
     }
   }
 }

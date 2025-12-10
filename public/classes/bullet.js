@@ -13,6 +13,8 @@ export class Bullet {
     this.Rot = 0;
     this.Id = 0;
     this.TimeAlive = 0;
+    this.WaveX;
+    this.WaveY;
   }
 
   Update(DT) {
@@ -49,5 +51,20 @@ export class Bullet {
     Ctx.arc(this.X, this.Y, 5, 0, Math.PI * 2);
     Ctx.fill();
     Ctx.closePath();
+
+    if (this.TimeAlive > 0.3 && !this.WaveX && !this.WaveY) {
+      this.WaveX = this.X;
+      this.WaveY = this.Y;
+    }
+
+    if (this.WaveX && this.WaveY) {
+      let WaveSize = (this.TimeAlive - 0.3) * 200;
+      Ctx.beginPath();
+      Ctx.strokeStyle = `rgba(255, 255, 255, ${1 - (WaveSize / 50)})`;
+      Ctx.lineWidth = 8;
+      Ctx.arc(this.WaveX, this.WaveY, WaveSize, 0, Math.PI * 2);
+      Ctx.stroke();
+      Ctx.closePath();
+    }
   }
 }

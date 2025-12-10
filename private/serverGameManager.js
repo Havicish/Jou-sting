@@ -330,6 +330,15 @@ function CheckForPlrStabs(Game, DT) {
         Plr2.Health -= 10;
         Plr2.LastHitBy = Plr.Id;
 
+        for (let Session2 of Game.Sessions) {
+          Session2.Socket.send(JSON.stringify({
+            ServerPush: {
+              API: "DamageIndicator",
+              Payload: { X: Plr2.X, Y: Plr2.Y, Amount: -10 }
+            }
+          }));
+        }
+
         ThingsToUpdate.push({ SessionId: Session.Id, Updates: { VelX: Plr.VelX, VelY: Plr.VelY } });
         ThingsToUpdate.push({ SessionId: Session2.Id, Updates: { VelX: Plr2.VelX, VelY: Plr2.VelY, Health: Plr2.Health, LastHitBy: Plr2.LastHitBy } });
       }
@@ -429,10 +438,12 @@ function CalcBullets(Game, DT) {
       let Dist = Distance(Bullet.X, Bullet.Y, Plr.X + Math.cos(Plr.Rot), Plr.Y + Math.sin(Plr.Rot));
 
       if (Dist < 40) {
+        let DmgToDeal;
         if (Bullet.TimeAlive < 0.3)
-          Plr.Health -= 2;
+          DmgToDeal = 2;
         else
-          Plr.Health -= 10;
+          DmgToDeal = 10;
+        Plr.Health -= DmgToDeal;
         Plr.LastHitBy = Bullet.OwnerId;
         Game.Bullets = Game.Bullets.filter(b => b !== Bullet);
         let DirToBullet = Math.atan2(Bullet.Y - Plr.Y, Bullet.X - Plr.X);
@@ -444,6 +455,15 @@ function CalcBullets(Game, DT) {
             ServerPush: {
               API: "ServerRemoveObject",
               Payload: { ObjectId: Bullet.Id }
+            }
+          }));
+        }
+
+        for (let Session2 of Game.Sessions) {
+          Session2.Socket.send(JSON.stringify({
+            ServerPush: {
+              API: "DamageIndicator",
+              Payload: { X: Plr.X, Y: Plr.Y, Amount: -DmgToDeal }
             }
           }));
         }
@@ -500,6 +520,15 @@ function CalcCaltrops(Game, DT) {
             ServerPush: {
               API: "ServerRemoveObject",
               Payload: { ObjectId: Caltrop.Id }
+            }
+          }));
+        }
+
+        for (let Session2 of Game.Sessions) {
+          Session2.Socket.send(JSON.stringify({
+            ServerPush: {
+              API: "DamageIndicator",
+              Payload: { X: Plr.X, Y: Plr.Y, Amount: -10 }
             }
           }));
         }
