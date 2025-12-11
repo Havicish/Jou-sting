@@ -1,9 +1,10 @@
 import { Ctx } from "../canvasManager.js";
 import { IsKeyDown } from "../userInputManager.js";
 import { Camera } from "../render.js";
-import { AddOnSceneChangeListener, GetAllObjectsInScene } from "../sceneManager.js";
+import { AddObject, AddOnSceneChangeListener, GetAllObjectsInScene } from "../sceneManager.js";
 import { MainConsole } from "../consoleManager.js";
 import { ThisSession } from "../networking.js";
+import { Particle } from "./particle.js";
 
 let MoveCooldowns = {
   "Dash": 3,
@@ -44,6 +45,11 @@ export class Player {
     this.LastHitBy = null;
     this.ZIndex = 100;
     this.Size = 1;
+    this.ForwardKeybind = "W";
+    this.LeftKeybind = "A";
+    this.RightKeybind = "D";
+    this.Move1Keybind = "K";
+    this.Move2Keybind = "L";
 
     this.PropsToSmoothTo = {};
     this.GeneralSmoothingFactor = 1;
@@ -71,21 +77,21 @@ export class Player {
     this.VelRot = 0;
 
     if (this.IsClientControlled) {
-      if (IsKeyDown("W")) {
+      if (IsKeyDown(this.ForwardKeybind)) {
         this.VelX += Math.cos(this.Rot) * this.Speed * DT;
         this.VelY += Math.sin(this.Rot) * this.Speed * DT;
       }
-      if (IsKeyDown("A")) {
+      if (IsKeyDown(this.LeftKeybind)) {
         this.VelRot -= this.TurnSpeed;
       }
-      if (IsKeyDown("D")) {
+      if (IsKeyDown(this.RightKeybind)) {
         this.VelRot += this.TurnSpeed;
       }
 
-      if (IsKeyDown("K") && this.Move1CD <= 0) {
+      if (IsKeyDown(this.Move1Keybind) && this.Move1CD <= 0) {
         this.UseMove1();
       }
-      if (IsKeyDown("L") && this.Move2CD <= 0) {
+      if (IsKeyDown(this.Move2Keybind) && this.Move2CD <= 0) {
         this.UseMove2();
       }
     }
@@ -112,7 +118,7 @@ export class Player {
     //if (this.IsClientControlled)
       //Camera.Zoom = 1 + (1000 - Math.min(1000, Math.hypot(this.VelX, this.VelY))) / 3000;
 
-    Camera.Zoom = 0.9;
+    //Camera.Zoom = 0.9;
 
     this.Move1CD -= DT;
     this.Move2CD -= DT;
@@ -127,6 +133,17 @@ export class Player {
 
       this[Key] += (this.PropsToSmoothTo[Key] - this[Key]) * Smoothing * DT * 60
     }
+
+    let Part = new Particle();
+    Part.X = this.X + Math.cos(this.Rot) * this.LanceLength;
+    Part.Y = this.Y + Math.sin(this.Rot) * this.LanceLength;
+    Part.Size = 2;
+    Part.LifeTime = 2;
+    Part.Color = `hsl(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%)`;
+    Part.VelX = Math.cos(this.Rot) * 10;
+    Part.VelY = Math.sin(this.Rot) * 10;
+    Part.Drag = 1.01;
+    AddObject(Part, "Game");
   }
 
   Render() {

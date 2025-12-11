@@ -67,10 +67,7 @@ document.addEventListener("keyup", (Event) => {
     }
     return;
   }
-  const Index = Keys.indexOf(Event.key.toLowerCase());
-  if (Index > -1) {
-    Keys.splice(Index, 1);
-  }
+  Keys = Keys.filter(key => key != Event.key.toLowerCase());
 });
 
 export function IsKeyDown(Key) {

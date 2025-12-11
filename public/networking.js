@@ -266,7 +266,9 @@ class Session {
       let Name = Data.Payload.Name;
       let Hue = Data.Payload.Hue;
       let Message = Data.Payload.Message;
-      AddChatMessage(Name, Hue, Message);
+      let X = Data.Payload.X;
+      let Y = Data.Payload.Y;
+      AddChatMessage(Name, Hue, Message, X, Y);
     }
 
     if (API == "DamageIndicator") {

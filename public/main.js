@@ -3,6 +3,7 @@ import { UpdateAll } from "./updaters.js";
 import { Scenes, SetScene } from "./sceneManager.js";
 import { Mouse } from "./userInputManager.js";
 import { ThisSession } from "./networking.js";
+import { MainConsole } from "./consoleManager.js";
 
 export let GameState = {
   CurrentScene: null,
@@ -24,10 +25,17 @@ function Frame() {
 
   let Objects = Scenes[GameState.CurrentScene].Objects;
 
+  let ShouldRemove = [];
   for (let Object of Objects) {
     if (Object.Update) {
       Object.Update(DT);
+      if (typeof Object.ShouldRemove == "function" && Object.ShouldRemove())
+        ShouldRemove.push(Object);
     }
+  }
+
+  for (let Object of ShouldRemove) {
+    Objects.splice(Objects.indexOf(Object), 1);
   }
 
   UpdateAll(DT);

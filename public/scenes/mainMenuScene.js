@@ -6,6 +6,7 @@ import { SetCookie, GetCookie } from "../cookiesManager.js";
 import { ThisSession } from "../networking.js";
 import { MainConsole } from "../consoleManager.js";
 import { Camera } from "../render.js";
+import { IsKeyDown } from "../userInputManager.js";
 
 let ShouldUpdateTotalPlrCount = true;
 
@@ -74,39 +75,49 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  document.getElementById("CloseMenu").addEventListener("click", () => {
+    document.getElementById("Menu").style.display = "none";
+  });
+
   document.getElementById("ShowLeaveJoinMessages").addEventListener("change", function() {
     SetCookie("ShowLeaveJoinMessages", this.checked);
   });
   document.getElementById("ShowLeaveJoinMessages").checked = GetCookie("ShowLeaveJoinMessages") == true || true;
   document.getElementById("ForwardKeybind").addEventListener("input", function() {
     SetCookie("ForwardKeybind", this.value);
+    ThisSession.Plr.ForwardKeybind = this.value;
   });
   document.getElementById("ForwardKeybind").value = GetCookie("ForwardKeybind") || "W";
   document.getElementById("LeftKeybind").addEventListener("input", function() {
     SetCookie("LeftKeybind", this.value);
+    ThisSession.Plr.LeftKeybind = this.value;
   });
   document.getElementById("LeftKeybind").value = GetCookie("LeftKeybind") || "A";
   document.getElementById("RightKeybind").addEventListener("input", function() {
     SetCookie("RightKeybind", this.value);
+    ThisSession.Plr.RightKeybind = this.value;
   });
   document.getElementById("RightKeybind").value = GetCookie("RightKeybind") || "D";
   document.getElementById("Move1Keybind").addEventListener("input", function() {
     SetCookie("Move1Keybind", this.value);
+    ThisSession.Plr.Move1Keybind = this.value;
   });
   document.getElementById("Move1Keybind").value = GetCookie("Move1Keybind") || "K";
   document.getElementById("Move2Keybind").addEventListener("input", function() {
     SetCookie("Move2Keybind", this.value);
+    ThisSession.Plr.Move2Keybind = this.value;
   });
   document.getElementById("Move2Keybind").value = GetCookie("Move2Keybind") || "L";
   document.getElementById("CameraZoom").addEventListener("input", function() {
     SetCookie("CameraZoom", this.value);
     Camera.Zoom = this.value;
   });
-  document.getElementById("CameraZoom").value = GetCookie("CameraZoom") || 1;
-  Camera.Zoom = GetCookie("CameraZoom") || 1;
+  document.getElementById("CameraZoom").value = GetCookie("CameraZoom") || 0.9;
+  Camera.Zoom = GetCookie("CameraZoom") || 0.9;
   document.getElementById("CameraZoom").previousElementSibling.innerHTML = `Camera Zoom: (${document.getElementById("CameraZoom").value})`;
   document.getElementById("CameraFollowRotation").addEventListener("change", function() {
     SetCookie("CameraFollowRotation", this.checked);
+    Camera.TrackRot = this.checked;
   });
   document.getElementById("CameraFollowRotation").checked = GetCookie("CameraFollowRotation") == true || false;
 
@@ -133,6 +144,13 @@ AddUpdater((DT) => {
 
 AddOnSceneChangeListener("MainMenu", () => {
   ClearScene("MainMenu");
+  let LastMenuButton = false;
+  AddUpdater((DT) => {
+    if (IsKeyDown("Escape") && !LastMenuButton) {
+      document.getElementById("Settings").style.display = document.getElementById("Settings").style.display == "none" ? "block" : "none";
+    }
+    LastMenuButton = IsKeyDown("Escape");
+  }, () => {return GameState.CurrentScene != "MainMenu";});
 });
 
 AddOnSceneChangeListener("", () => { // Update on any change

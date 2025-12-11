@@ -135,8 +135,9 @@
   <div id="Menu" style="z-index: 101; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.5); width: 400px; height: 150px; display: none; font-family: 'Trebuchet MS'; font-size: 14px; outline: 2px solid rgba(255, 255, 255, 0.2); padding: 5px 7px;">
     <span style="z-index: 102; position: absolute; top: calc(50% - 75px); left: 50%; transform: translateX(-50%); font-size: 18px;"><b>Menu</b></span>
     <span id="GameNameDisplay" style="z-index: 102; position: absolute; top: calc(50% - 35px); left: 50%; transform: translateX(-50%);">Game name: </span>
-    <button id="LeaveGame" style="z-index: 102; position: absolute; top: calc(50% - 10px); left: 50%; transform: translateX(-50%);">Leave game</button>
-    <button id="OpenSettings1" style="z-index: 102; position: absolute; top: calc(50% + 15px); left: 50%; transform: translateX(-50%);">Open settings</button>
+    <button id="LeaveGame" style="z-index: 102; position: absolute; top: calc(50% - 10px); left: 50%; transform: translateX(-50%);"><u>L</u>eave game</button>
+    <button id="OpenSettings1" style="z-index: 102; position: absolute; top: calc(50% + 15px); left: 50%; transform: translateX(-50%);">Open <u>s</u>ettings</button>
+    <button id="CloseMenu" style="z-index: 102; position: absolute; top: calc(50% + 40px); left: 50%; transform: translateX(-50%);">Close menu</button>
   </div>
   <div id="Settings" style="z-index: 101; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.5); width: 400px; height: 500px; display: none; font-family: 'Trebuchet MS'; font-size: 14px; outline: 2px solid rgba(255, 255, 255, 0.2); padding: 5px 7px;">
     <span style="display: block; text-align: center; font-size: 18px;"><b>Settings</b></span>
@@ -160,7 +161,7 @@
     <input id="Move2Keybind" type="text" maxlength="1" placeholder="L" style="display: block; margin: 0 auto;" value="L">
     <br>
     <label for="CameraZoom" style="display: block; text-align: center;">Camera Zoom (1):</label>
-    <input type="range" min="0.3" max="2" value="1" step="0.1" id="CameraZoom" style="display: block; margin: 0 auto;">
+    <input type="range" min="0.3" max="2" value="0.9" step="0.05" id="CameraZoom" style="display: block; margin: 0 auto;">
     <script>document.getElementById('CameraZoom').addEventListener("input", function() {
         document.getElementById('CameraZoom').previousElementSibling.innerHTML = `Camera Zoom (${this.value}):`;
       });

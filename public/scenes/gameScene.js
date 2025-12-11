@@ -8,10 +8,11 @@ import { BoundingBox } from "../classes/boundingBox.js";
 import { Camera } from "../render.js";
 import { MainConsole } from "../consoleManager.js";
 import { IsKeyDown } from "../userInputManager.js";
+import { ChatMessageParticle } from "../classes/chatMessageParticle.js";
 
 export let ChatMessages = [];
 
-export function AddChatMessage(Name, Hue, Message) {
+export function AddChatMessage(Name, Hue, Message, X, Y) {
   if (Name == "[SERVER]" && (Message.indexOf("has joined.") != -1 || Message.indexOf("has left.") != -1) && document.getElementById("ShowLeaveJoinMessages").checked == false) {
     return;
   }
@@ -36,6 +37,11 @@ export function AddChatMessage(Name, Hue, Message) {
     else
       MsgSpan.innerHTML = `<b style="color: rgb(192, 192, 192)">${Msg.Name}:</b> ${Msg.Message}<br>`;
     MessagesDiv.appendChild(MsgSpan);
+  }
+
+  if (X && Y) {
+    let Particle = new ChatMessageParticle(X, Y, Message, `hsl(${Hue}, 100%, 50%)`);
+    AddObject("Game", Particle);
   }
   
   // Scroll to bottom if user was at bottom before the update
@@ -132,12 +138,21 @@ AddUpdater((DT) => {
         MenuDiv.style.display = "block";
       }
     }
-    if (document.getElementById("Settings").style.display == "block") {
+    if (document.getElementById("Settings").style.display == "block" && GameState.CurrentScene == "Game") {
       document.getElementById("Settings").style.display = "none";
     }
     MenuButtonDown = true;
   } else {
     MenuButtonDown = false;
+  }
+
+  if (document.getElementById("Menu").style.display == "block") {
+    if (IsKeyDown("S")) {
+      document.getElementById("OpenSettings1").click();
+    }
+    if (IsKeyDown("L")) {
+      document.getElementById("LeaveGame").click();
+    }
   }
 });
 

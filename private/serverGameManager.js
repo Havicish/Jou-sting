@@ -243,7 +243,7 @@ function Start() {
         Session2.Socket.send(JSON.stringify({ 
           ServerPush: {
             API: "AddChatMessage",
-            Payload: { Name: Session.Plr.Name, Hue: Session.Plr.Hue, Message: Payload.Message }
+            Payload: { Name: Session.Plr.Name, Hue: Session.Plr.Hue, Message: Payload.Message, X: Session.Plr.X, Y: Session.Plr.Y }
           }
         }));
       }
