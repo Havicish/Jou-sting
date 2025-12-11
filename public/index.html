@@ -102,6 +102,11 @@
       border-radius: 50%;
       background: var(--thumb-color);
     }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+    }
   </style>
 </head>
 <body style="background-color: black; overflow: hidden;">
@@ -116,21 +121,60 @@
     });
   </script>
   <canvas id="Canvas" style="position: absolute; inset: 0; z-index: 100; display: none;"></canvas>
-  <div id="Console" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 150px; background-color: rgba(0, 0, 0, 0.8); font-family: monospace; font-size: 14px; overflow-y: auto; z-index: 200; display: none;"></div>
+  <div id="Console" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 150px; background-color: rgba(0, 0, 0, 0.8); font-family: monospace; font-size: 14px; overflow-y: auto; z-index: 200; display: none;"></div>
   <p id="PingDisplay" style="position: absolute; bottom: -10px; left: 10px; color: white;"></p>
   <p id="FPSDisplay" style="position: absolute; bottom: -10px; left: 100px; color: white;">FPS: 60</p>
   <div id="Chat" style="z-index: 101; position: absolute; bottom: 30px; left: 10px; background-color: rgba(0, 0, 0, 0.5); width: 400px; height: 150px; display: none; font-family: 'Trebuchet MS'; font-size: 14px; outline: 2px solid rgba(255, 255, 255, 0.2); padding: 5px 7px;">
     <div id="Messages" style="z-index: 101; position: absolute; top: 10px; left: 10px; background-color: rgba(200, 0, 0, 0); width: 393px; height: 115px; display: inherit; font-family: 'Trebuchet MS'; font-size: 14px; overflow-y: auto; overflow-x: hidden;">
-      <span style="color: white;"><b style="color: rgb(192, 192, 192);">[SERVER]:</b> Uh, chat :3</span><br>
+      <span style="color: white;"><b style="color: rgb(192, 192, 192);">[SERVER]:</b> Is this real chat?</span><br>
     </div>
     <input id="ChatInput" style="position: absolute; bottom: 10px; left: 10px; width: 300px;" placeholder="Press enter to start typing..." maxlength="200">
     <button id="ChatSend" style="position: absolute; bottom: 10px; left: 320px; width: 40px;">Send</button>
     <button id="ChatToggleDisplay" style="position: absolute; bottom: 10px; left: 365px; width: 40px;">Hide</button>
   </div>
+  <div id="Menu" style="z-index: 101; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.5); width: 400px; height: 150px; display: none; font-family: 'Trebuchet MS'; font-size: 14px; outline: 2px solid rgba(255, 255, 255, 0.2); padding: 5px 7px;">
+    <span style="z-index: 102; position: absolute; top: calc(50% - 75px); left: 50%; transform: translateX(-50%); font-size: 18px;"><b>Menu</b></span>
+    <span id="GameNameDisplay" style="z-index: 102; position: absolute; top: calc(50% - 35px); left: 50%; transform: translateX(-50%);">Game name: </span>
+    <button id="LeaveGame" style="z-index: 102; position: absolute; top: calc(50% - 10px); left: 50%; transform: translateX(-50%);">Leave game</button>
+    <button id="OpenSettings1" style="z-index: 102; position: absolute; top: calc(50% + 15px); left: 50%; transform: translateX(-50%);">Open settings</button>
+  </div>
+  <div id="Settings" style="z-index: 101; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.5); width: 400px; height: 500px; display: none; font-family: 'Trebuchet MS'; font-size: 14px; outline: 2px solid rgba(255, 255, 255, 0.2); padding: 5px 7px;">
+    <span style="display: block; text-align: center; font-size: 18px;"><b>Settings</b></span>
+    <br><br>
+    <label for="ShowLeaveJoinMessages" style="display: block; text-align: center;">Show leave and join messages:</label>
+    <input type="checkbox" id="ShowLeaveJoinMessages" style="display: block; margin: 0 auto;" checked>
+    <br>
+    <label for="ForwardKeybind" style="display: block; text-align: center;">Forward Keybind:</label>
+    <input id="ForwardKeybind" type="text" maxlength="1" placeholder="W" style="display: block; margin: 0 auto;" value="W">
+    <br>
+    <label for="LeftKeybind" style="display: block; text-align: center;">Left Keybind:</label>
+    <input id="LeftKeybind" type="text" maxlength="1" placeholder="A" style="display: block; margin: 0 auto;" value="A">
+    <br>
+    <label for="RightKeybind" style="display: block; text-align: center;">Right Keybind:</label>
+    <input id="RightKeybind" type="text" maxlength="1" placeholder="D" style="display: block; margin: 0 auto;" value="D">
+    <br>
+    <label for="Move1Keybind" style="display: block; text-align: center;">Move 1 Keybind:</label>
+    <input id="Move1Keybind" type="text" maxlength="1" placeholder="K" style="display: block; margin: 0 auto;" value="K">
+    <br>
+    <label for="Move2Keybind" style="display: block; text-align: center;">Move 2 Keybind:</label>
+    <input id="Move2Keybind" type="text" maxlength="1" placeholder="L" style="display: block; margin: 0 auto;" value="L">
+    <br>
+    <label for="CameraZoom" style="display: block; text-align: center;">Camera Zoom (1):</label>
+    <input type="range" min="0.3" max="2" value="1" step="0.1" id="CameraZoom" style="display: block; margin: 0 auto;">
+    <script>document.getElementById('CameraZoom').addEventListener("input", function() {
+        document.getElementById('CameraZoom').previousElementSibling.innerHTML = `Camera Zoom (${this.value}):`;
+      });
+    </script>
+    <br>
+    <label for="CameraFollowRotation" style="display: block; text-align: center;">Camera follow rotation:</label>
+    <input type="checkbox" id="CameraFollowRotation" style="display: block; margin: 0 auto;">
+    <br>
+    <button id="CloseSettings" style="display: block; margin: 0 auto;">Close settings</button>
+  </div>
   <div id="HtmlSceneMainMenu" style="display: inline;">
     <h1>Welcome to Jou-sting!</h1>
     <p><strong>Version 0.1.1</strong> (This is a recode of the original Jou-sting!)</p>
-    <p style="color: #bbb;" id="TotalPlrCount">Current players: 1</p>
+    <p style="color: #bbb;" id="TotalPlrCount">Current player count: 1</p>
     <div class="LineBreak"></div>
     <label for="NameInput">Username:</label><br>
     <input type="text" name="NameInput" id="NameInput" placeholder="Username" maxlength="20"><br>
@@ -172,6 +216,8 @@
     <label for="GameNameInput">Game name:</label><br>
     <input type="text" name="GameNameInput" id="GameName" placeholder="Game name" maxlength="20"><br>
     <button id="JoinGame">Make/join game</button>
+    <div class="LineBreak"></div>
+    <button id="OpenSettings2">Settings</button> <span style="font-size: 11px; color: #333;">Redundant space :]</span>
     <div class="LineBreak"></div>
     <span><b>Objective:</b></span>
     <br>

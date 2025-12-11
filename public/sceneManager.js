@@ -52,12 +52,14 @@ export function SetScene(Scene) {
     if (HtmlElement) {
       HtmlElement.style.display = "block";
     }
+    Get("body").style.overflow = "auto";
   } else {
     ShowCanvas();
     let LastHtmlElement = Get(`#HtmlScene${LastScene}`);
     if (LastHtmlElement) {
       LastHtmlElement.style.display = "none";
     }
+    Get("body").style.overflow = "hidden";
   }
 }
 

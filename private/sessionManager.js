@@ -12,7 +12,7 @@ class Player {
     this.VelRot = 0;
     this.Health = 100;
     this.MaxHealth = 100;
-    this.Move1CD = 3;
+    this.Move1CD = 0;
     this.Move2CD = 0;
     this.MaxMove1CD = 3;
     this.MaxMove2CD = 3;

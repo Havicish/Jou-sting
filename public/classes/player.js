@@ -181,6 +181,12 @@ export class Player {
     Ctx.strokeStyle = Color;
     Ctx.lineWidth = 1.5;
     Ctx.stroke();
+    // if (this.Move1 == "Teleport" || this.Move2 == "Teleport") {
+    //   Ctx.beginPath();
+    //   Ctx.arc(this.X + Math.cos(this.Rot) * 400, this.Y + Math.sin(this.Rot) * 400, 4, 0, Math.PI * 2);
+    //   Ctx.fillStyle = "#88f";
+    //   Ctx.fill();
+    // }
     Ctx.beginPath();
     Ctx.fillStyle = `hsl(${this.Hue}, 100%, 50%)`;
     Ctx.textAlign = "center";

@@ -12,6 +12,10 @@ import { IsKeyDown } from "../userInputManager.js";
 export let ChatMessages = [];
 
 export function AddChatMessage(Name, Hue, Message) {
+  if (Name == "[SERVER]" && (Message.indexOf("has joined.") != -1 || Message.indexOf("has left.") != -1) && document.getElementById("ShowLeaveJoinMessages").checked == false) {
+    return;
+  }
+
   ChatMessages.push({ Name, Hue, Message });
   if (ChatMessages.length > 50) {
     ChatMessages.shift();
@@ -87,6 +91,8 @@ AddOnSceneChangeListener("Game", () => {
   setTimeout(() => {
     MessagesDiv.scrollTop = MessagesDiv.scrollHeight;
   }, 5);
+
+  document.getElementById("GameNameDisplay").innerHTML = `<b>Game name:</b> ${document.getElementById("GameName").value}`;
 });
 
 AddOnSceneChangeListener("", () => {
@@ -100,6 +106,7 @@ AddOnSceneChangeListener("", () => {
 });
 
 let Deltas = [];
+let MenuButtonDown = false;
 AddUpdater((DT) => {
   Deltas.push(DT);
 
@@ -114,5 +121,57 @@ AddUpdater((DT) => {
   TotalDelta /= Deltas.length
   TotalDelta = 1 / TotalDelta;
 
-  document.getElementById("FPSDisplay").innerHTML = `FPS: ${Math.round(TotalDelta)}`;
+  document.getElementById("FPSDisplay").innerHTML = `FPS: ${Math.round(TotalDelta * GameState.TimeScale)}`;
+
+  if (IsKeyDown("Escape")) {
+    if (!MenuButtonDown) {
+      let MenuDiv = document.getElementById("Menu");
+      if (MenuDiv.style.display == "block" || GameState.CurrentScene != "Game") {
+        MenuDiv.style.display = "none";
+      } else {
+        MenuDiv.style.display = "block";
+      }
+    }
+    if (document.getElementById("Settings").style.display == "block") {
+      document.getElementById("Settings").style.display = "none";
+    }
+    MenuButtonDown = true;
+  } else {
+    MenuButtonDown = false;
+  }
+});
+
+document.getElementById("LeaveGame").addEventListener("click", () => {
+  ThisSession.CallServer("LeaveGame", {}, () => {
+    SessionsInGame.length = 0;
+    ChatMessages = [];
+
+    ClearScene("Game");
+    SetScene("MainMenu");
+
+    document.getElementById("Menu").style.display = "none";
+  });
+});
+
+let SettingsOpenedFromInGame = false;
+document.getElementById("OpenSettings1").addEventListener("click", () => {
+  document.getElementById("Menu").style.display = "none";
+  document.getElementById("Settings").style.display = "block";
+  SettingsOpenedFromInGame = true;
+});
+
+document.getElementById("OpenSettings2").addEventListener("click", () => {
+  if (document.getElementById("Settings").style.display == "block") {
+    document.getElementById("Settings").style.display = "none";
+  } else {
+    document.getElementById("Settings").style.display = "block";
+  }
+  SettingsOpenedFromInGame = false;
+});
+
+document.getElementById("CloseSettings").addEventListener("click", () => {
+  document.getElementById("Settings").style.display = "none";
+  if (SettingsOpenedFromInGame)
+    document.getElementById("Menu").style.display = "block";
+  SettingsOpenedFromInGame = false;
 });

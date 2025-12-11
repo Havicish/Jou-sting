@@ -5,7 +5,7 @@ class Console {
   constructor() {
     this.Visible = false;
     this.ToggleKey = "`";
-    this.PauseKey = "Escape";
+    this.PauseKey = "p";
     this.LastToggleKeyDown = false;
     this.LastPauseKeyDown = false;
     this.TotalMessages = 0;
@@ -29,11 +29,13 @@ class Console {
 
     this.LastToggleKeyDown = IsToggleKeyDown;
 
-    if (IsKeyDown(this.PauseKey) && !this.LastPauseKeyDown) {
-      this.IsPaused = !this.IsPaused;
-    }
+    if (this.PauseKey != null) {
+      if (IsKeyDown(this.PauseKey) && !this.LastPauseKeyDown) {
+        this.IsPaused = !this.IsPaused;
+      }
 
-    this.LastPauseKeyDown = IsKeyDown(this.PauseKey);
+      this.LastPauseKeyDown = IsKeyDown(this.PauseKey);
+    }
   }
 
   Log(Msg) {

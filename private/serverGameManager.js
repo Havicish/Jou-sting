@@ -257,6 +257,57 @@ function Start() {
     }
   });
 
+  AddAPIListener("LeaveGame", (Payload, Socket) => {
+    try {
+      let Session = FindSession(Payload.SessionId);
+      if (!Session) return { Success: false, Error: "Session not found" };
+
+      let ThisGame = FindGame(Session.GameName);
+      if (!ThisGame) return { Success: false, Error: "Game not found" };
+
+      for (let [i, Session2] of ThisGame.Sessions.entries()) {
+        if (Session2.Id == Session.Id) {
+          continue;
+        }
+
+        Session2.Socket.send(JSON.stringify({
+          ServerPush: {
+            API: "RemoveSession",
+            Payload: { Id: Session.Id }
+          }
+        }));
+      }
+
+      for (let [i, Session2] of ThisGame.Sessions.entries()) {
+        if (Session2.Id == Session.Id) {
+          ThisGame.Sessions.splice(i, 1);
+          break;
+        }
+      }
+
+      Session.GameName = null;
+
+      setTimeout(() => {
+        for (let Session2 of GetSessions()) {
+          if (Session2.GameName != ThisGame.Name)
+            continue;
+
+          Session2.Socket.send(JSON.stringify({
+            ServerPush: {
+              API: "AddChatMessage",
+              Payload: { Name: "[SERVER]", Hue: null, Message: `${Session.Plr.Name} has left.` }
+            }
+          }));
+        }
+      }, 100);
+
+      return { Success: true };
+    } catch (err) {
+      console.error(err);
+      return { Success: false, Error: err.message };
+    }
+  });
+
   let LastRecTime = Date.now();
   setInterval(() => {
     let Now = Date.now();
@@ -440,7 +491,7 @@ function CalcBullets(Game, DT) {
       if (Dist < 40) {
         let DmgToDeal;
         if (Bullet.TimeAlive < 0.3)
-          DmgToDeal = 2;
+          DmgToDeal = 4;
         else
           DmgToDeal = 10;
         Plr.Health -= DmgToDeal;

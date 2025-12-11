@@ -66,6 +66,7 @@ class Session {
 
     this.Socket.onopen = () => {
       console.log("WebSocket connected");
+      MainConsole.Log("WebSocket connected");
       // Send a CreateSession request
       this.CallServer("CreateSession", {}, (Response) => {
         this.Id = Response.Id;
@@ -99,6 +100,7 @@ class Session {
 
     this.Socket.onclose = () => {
       console.log("WebSocket disconnected");
+      MainConsole.Log("WebSocket disconnected");
       // Clear all remote sessions when we disconnect
       SessionsInGame.forEach(session => {
         if (session.Plr) {
@@ -156,6 +158,7 @@ class Session {
       Plr.Id = Session.Id;
       Plr.IsClientControlled = false;
       console.log(Session);
+      MainConsole.Log(JSON.stringify(Session) + " joined the game.");
 
       SessionsInGame.push(Session);
 
@@ -193,8 +196,10 @@ class Session {
       
       if (PlayerToRemove) {
         RemoveObject("Game", PlayerToRemove);
+        MainConsole.Log(`Removed ${PlayerToRemove.Name} from the game.`);
       } else {
         console.error(`Player with SessionId: ${SessionId} not found in Game scene.`);
+        MainConsole.Error(`Player with SessionId: ${SessionId} not found in Game scene.`);
       }
 
       // Remove session from local list
@@ -349,6 +354,7 @@ function ServerUpdateSession(ThisSession, Data) {
   }
 
   if (!ExsistingPlr) {
+    MainConsole.Log(`Player with SessionId: ${Session.Id} not found in Game scene. Caching updates.`);
     if (!NeededUpdatesForNonExistantPlr[Session.Id]) {
       NeededUpdatesForNonExistantPlr[Session.Id] = {};
     }
@@ -360,6 +366,7 @@ function ServerUpdateSession(ThisSession, Data) {
 
   // Merge cached updates if they exist
   if (NeededUpdatesForNonExistantPlr[Session.Id]) {
+    MainConsole.Log(`Applying cached updates: ${JSON.stringify(NeededUpdatesForNonExistantPlr[Session.Id])} to player: ${ExsistingPlr.Name}`);
     for (const Key of Object.keys(NeededUpdatesForNonExistantPlr[Session.Id])) {
       if (Object.prototype.hasOwnProperty.call(NeededUpdatesForNonExistantPlr[Session.Id], Key)) {
         Updates[Key] = NeededUpdatesForNonExistantPlr[Session.Id][Key];
@@ -370,6 +377,7 @@ function ServerUpdateSession(ThisSession, Data) {
   }
 
   if (ExsistingPlr.Id != ThisSession.Id) {
+    MainConsole.Log(`Applying updates: ${JSON.stringify(Updates)} to player: ${ExsistingPlr.Name}`);
     for (const Key of Object.keys(Updates)) {
       if (Object.prototype.hasOwnProperty.call(Updates, Key)) {
         if (typeof Updates[Key] == "number") {
