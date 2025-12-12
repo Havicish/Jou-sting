@@ -69,12 +69,10 @@ function Start() {
 
         let TempSession = Object.assign({}, Session);
         delete TempSession.Socket;
-        TempSession.StabbingCD = 0;
         ServerPush(Session2.Socket, "SessionJoinedGame", { Session: TempSession });
 
         let TempSession2 = Object.assign({}, Session2);
         delete TempSession2.Socket;
-        TempSession2.StabbingCD = 0;
         ServerPush(Session.Socket, "SessionJoinedGame", { Session: TempSession2 });
 
         setTimeout(() => {

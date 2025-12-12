@@ -78,21 +78,19 @@ function AddAPIListener(API, Callback) {
 }
 
 function ServerPush(Socket, API, Data) {
-  let WaitingFor = { Socket, API, Data, Completed: false, Attempts: 0 };
+  let WaitingFor = { Socket, API, Data, Completed: false, Attempts: 0, Id: Date.now() + Math.random() };
   WaitingForClientGotServerPush.push(WaitingFor);
 
   const CheckInterval = setInterval(() => {
     WaitingFor.Attempts++;
-    console.log(`ServerPush: ${API}    ${WaitingFor.Completed ? "Completed" : "Pending"}`);
-    // send the same wrapper other code uses
     Socket.send(JSON.stringify({
       ServerPush: {
         API: API,
-        Payload: Data
+        Payload: Data,
+        ServerPushId: WaitingFor.Id
       }
     }));
 
-    // safety: stop retrying after N attempts so we don't spam forever
     if (WaitingFor.Completed || WaitingFor.Attempts > 50 || Socket.readyState !== Socket.OPEN) {
       const idx = WaitingForClientGotServerPush.indexOf(WaitingFor);
       if (idx !== -1) WaitingForClientGotServerPush.splice(idx, 1);
@@ -103,11 +101,9 @@ function ServerPush(Socket, API, Data) {
 
 AddAPIListener("AcknowledgeServerPush", (Payload, Socket) => {
   console.log("AcknowledgeServerPush received for API:", Payload.API);
-  //console.log("Current WaitingForClientGotServerPush:", WaitingForClientGotServerPush);
   let API = Payload.API;
   for (let i = 0; i < WaitingForClientGotServerPush.length; i++) {
     let WaitingFor = WaitingForClientGotServerPush[i];
-    //console.log(WaitingFor.Socket == Socket && WaitingFor.API == API)
     if (WaitingFor.Socket == Socket && WaitingFor.API == API) {
       WaitingFor.Completed = true;
       break;

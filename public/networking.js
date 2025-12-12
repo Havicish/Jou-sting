@@ -9,6 +9,7 @@ import { Caltrop } from "./classes/caltrop.js";
 import { AddChatMessage } from "./scenes/gameScene.js";
 import { DamageIndicator } from "./classes/damageIndicator.js";
 //import { Server } from "ws";
+//import { Server } from "ws";
 
 export let SessionsInGame = [];
 
@@ -156,14 +157,13 @@ class Session {
     let FoundPush = false;
     for (let i = 0; i < this.GotServerPushes.length; i++) {
       let Push = this.GotServerPushes[i];
-      MainConsole.Log(`${Push.API} == ${API} && ${JSON.stringify(Push.Data.Payload)} == ${JSON.stringify(Data.Payload)}`);
-      if (Push.API == API && JSON.stringify(Push.Data.Payload) == JSON.stringify(Data.Payload)) {
-        MainConsole.Warn(`Ignoring duplicate ServerPush: ${API}`);
+      if (Push.ServerPushId == Data.ServerPushId && Data.ServerPushId != undefined) {
+        MainConsole.Warn(`Ignoring duplicate ServerPush: ${API} Id: ${Data.ServerPushId}`);
         FoundPush = true;
         break;
       }
     }
-    this.GotServerPushes.push({ API, Data });
+    this.GotServerPushes.push({ ServerPushId: Data.ServerPushId });
 
     if (FoundPush) return;
 
