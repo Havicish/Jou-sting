@@ -33,6 +33,8 @@ class Session {
     Camera.Tracking = this.Plr;
     Camera.TrackingSpeed = 0.12;
 
+    this.GotServerPushes = [];
+
     this.LastPlr = Object.assign({}, this.Plr);
 
     this.PropertiesAllowedToSet = [
@@ -150,6 +152,21 @@ class Session {
   HandleServerPush(Data) {
     let API = Data.API;
 
+    ThisSession.CallServer("AcknowledgeServerPush", { API: API }, () => {});
+    let FoundPush = false;
+    for (let i = 0; i < this.GotServerPushes.length; i++) {
+      let Push = this.GotServerPushes[i];
+      MainConsole.Log(`${Push.API} == ${API} && ${JSON.stringify(Push.Data.Payload)} == ${JSON.stringify(Data.Payload)}`);
+      if (Push.API == API && JSON.stringify(Push.Data.Payload) == JSON.stringify(Data.Payload)) {
+        MainConsole.Warn(`Ignoring duplicate ServerPush: ${API}`);
+        FoundPush = true;
+        break;
+      }
+    }
+    this.GotServerPushes.push({ API, Data });
+
+    if (FoundPush) return;
+
     if (API == "SessionJoinedGame") {
       let Session = Data.Payload.Session;
       let Plr = new Player();
@@ -158,7 +175,7 @@ class Session {
       Plr.Id = Session.Id;
       Plr.IsClientControlled = false;
       console.log(Session);
-      MainConsole.Log(JSON.stringify(Session) + " joined the game.");
+      //MainConsole.Log(JSON.stringify(Session) + " joined the game.");
 
       SessionsInGame.push(Session);
 

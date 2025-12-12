@@ -39,6 +39,7 @@ let Games = [];
 
 function Start() {
   const AddAPIListener = require("./server.js").AddAPIListener;
+  const ServerPush = require("./server.js").ServerPush;
 
   AddAPIListener("JoinGame", (Payload, Socket) => {
     try {
@@ -66,19 +67,15 @@ function Start() {
         if (!Session2.GameName && Session2.GameName != "")
           continue;
 
-        Session2.Socket.send(JSON.stringify({
-          ServerPush: {
-            API: "SessionJoinedGame",
-            Payload: { Session }
-          }
-        }));
+        let TempSession = Object.assign({}, Session);
+        delete TempSession.Socket;
+        TempSession.StabbingCD = 0;
+        ServerPush(Session2.Socket, "SessionJoinedGame", { Session: TempSession });
 
-        Session.Socket.send(JSON.stringify({ 
-          ServerPush: {
-            API: "SessionJoinedGame",
-            Payload: { Session: Session2 }
-          }
-        }));
+        let TempSession2 = Object.assign({}, Session2);
+        delete TempSession2.Socket;
+        TempSession2.StabbingCD = 0;
+        ServerPush(Session.Socket, "SessionJoinedGame", { Session: TempSession2 });
 
         setTimeout(() => {
           Session2.Socket.send(JSON.stringify({ 

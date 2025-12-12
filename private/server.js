@@ -43,6 +43,7 @@ const Server = Http.createServer((Req, Res) => {
 
 const WSS = new WebSocket.Server({ server: Server });
 
+let WaitingForClientGotServerPush = [];
 WSS.on("connection", (Socket) => {
   Socket.on("message", (Message) => {
     try {
@@ -76,6 +77,44 @@ function AddAPIListener(API, Callback) {
   APIListeners[API] = Callback;
 }
 
-module.exports = { AddAPIListener, SessionDisconnected };
+function ServerPush(Socket, API, Data) {
+  let WaitingFor = { Socket, API, Data, Completed: false, Attempts: 0 };
+  WaitingForClientGotServerPush.push(WaitingFor);
+
+  const CheckInterval = setInterval(() => {
+    WaitingFor.Attempts++;
+    console.log(`ServerPush: ${API}    ${WaitingFor.Completed ? "Completed" : "Pending"}`);
+    // send the same wrapper other code uses
+    Socket.send(JSON.stringify({
+      ServerPush: {
+        API: API,
+        Payload: Data
+      }
+    }));
+
+    // safety: stop retrying after N attempts so we don't spam forever
+    if (WaitingFor.Completed || WaitingFor.Attempts > 50 || Socket.readyState !== Socket.OPEN) {
+      const idx = WaitingForClientGotServerPush.indexOf(WaitingFor);
+      if (idx !== -1) WaitingForClientGotServerPush.splice(idx, 1);
+      clearInterval(CheckInterval);
+    }
+  }, 100);
+}
+
+AddAPIListener("AcknowledgeServerPush", (Payload, Socket) => {
+  console.log("AcknowledgeServerPush received for API:", Payload.API);
+  //console.log("Current WaitingForClientGotServerPush:", WaitingForClientGotServerPush);
+  let API = Payload.API;
+  for (let i = 0; i < WaitingForClientGotServerPush.length; i++) {
+    let WaitingFor = WaitingForClientGotServerPush[i];
+    //console.log(WaitingFor.Socket == Socket && WaitingFor.API == API)
+    if (WaitingFor.Socket == Socket && WaitingFor.API == API) {
+      WaitingFor.Completed = true;
+      break;
+    }
+  }
+});
+
+module.exports = { AddAPIListener, SessionDisconnected, ServerPush };
 ServerGameManagerStart();
 SessionManagerStart();

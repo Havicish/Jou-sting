@@ -134,18 +134,18 @@ export class Player {
       this[Key] += (this.PropsToSmoothTo[Key] - this[Key]) * Smoothing * DT * 60
     }
 
-    let Part = new Particle();
-    let RandRot = Math.random() * Math.PI * 2;
-    Part.X = this.X + Math.cos(RandRot) * 30;
-    Part.Y = this.Y + Math.sin(RandRot) * 30;
-    Part.Size = 2;
-    Part.LifeTime = 2;
-    Part.Color = `hsl(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%)`;
-    Part.VelX = this.VelX + Math.cos(RandRot) * 50;
-    Part.VelY = this.VelY + Math.sin(RandRot) * 50;
-    Part.Drag = 1.05;
-    Part.Gravity = 0;
-    AddObject("Game", Part);
+    // let Part = new Particle();
+    // let RandRot = Math.random() * Math.PI * 2;
+    // Part.X = this.X + Math.cos(RandRot) * 30;
+    // Part.Y = this.Y + Math.sin(RandRot) * 30;
+    // Part.Size = 2;
+    // Part.LifeTime = 2;
+    // Part.Color = `hsl(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%)`;
+    // Part.VelX = this.VelX + Math.cos(RandRot) * 50;
+    // Part.VelY = this.VelY + Math.sin(RandRot) * 50;
+    // Part.Drag = 1.05;
+    // Part.Gravity = 0;
+    // AddObject("Game", Part);
   }
 
   Render() {
