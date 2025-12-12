@@ -56,6 +56,10 @@
       width: 200px;
     }
 
+    input[type="password"] {
+      width: 200px;
+    }
+
     select {
       color: black;
       background-color: #f88;
@@ -178,7 +182,8 @@
     <p style="color: #bbb;" id="TotalPlrCount">Current player count: 1</p>
     <div class="LineBreak"></div>
     <label for="NameInput">Username:</label><br>
-    <input type="text" name="NameInput" id="NameInput" placeholder="Username" maxlength="20"><br>
+    <input type="text" name="NameInput" id="NameInput" placeholder="Username" maxlength="20">
+    <input type="password" id="DevPasswordInput" placeholder="Dev password" maxlength="20" style="display: none;"><br>
     <br>
     <label for="CharacterColor">Character Color:</label><br>
     <input type="range" min="0" max="360" value="0" step="10" id="CharacterColor" style="--thumb-color: hsl(0, 100%, 50%);"><br>
@@ -247,6 +252,7 @@
     <h1>Disconnected from server</h1>
     <p>Refresh the page.</p>
   </div>
+  <img style="display: none;" id="DevIcon" src="images/devIcon.png">
   <script src="main.js" type="module"></script>
   <script src="userInputManager.js" type="module"></script>
   <script src="consoleManager.js" type="module"></script>

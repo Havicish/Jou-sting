@@ -50,6 +50,7 @@ export class Player {
     this.RightKeybind = "D";
     this.Move1Keybind = "K";
     this.Move2Keybind = "L";
+    this.IsDev = false;
 
     this.PropsToSmoothTo = {};
     this.GeneralSmoothingFactor = 1;
@@ -171,6 +172,17 @@ export class Player {
         Camera.Tracking = this;
     };
 
+    if (this.IsDev) {
+      Ctx.save();
+      Ctx.translate(this.X, this.Y);
+      Ctx.rotate(-Camera.Rot);
+      if (Camera.TrackRot)
+        Ctx.drawImage(document.getElementById("DevIcon"), -16, 38, 32, 32);
+      else
+        Ctx.drawImage(document.getElementById("DevIcon"), -16, -64, 32, 32);
+      Ctx.restore();
+    }
+
     let Color = `hsl(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%)`;
     let Color40Percent = `hsla(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%, 0.4)`;
     let Color20Percent = `hsla(${this.Hue}, 100%, ${(this.Health / this.MaxHealth) * 50 + 50}%, 0.2)`;
@@ -212,9 +224,9 @@ export class Player {
     Ctx.save();
     Ctx.translate(this.X, this.Y);
     Ctx.rotate(-Camera.Rot);
-    Ctx.font = (11 * this.Size) + "px Arial";
+    Ctx.font = "bold " + (12 * this.Size) + "px Arial";
     if (Camera.TrackRot)
-      Ctx.fillText(this.Name, 0, 34 * this.Size);
+      Ctx.fillText(this.Name, 0, 38 * this.Size);
     else
       Ctx.fillText(this.Name, 0, -28 * this.Size);
     Ctx.restore();
@@ -225,7 +237,9 @@ export class Player {
     Ctx.fillStyle = "#fff";
     Ctx.textAlign = "center";
     Ctx.font = "48px Arial";
-    Ctx.fillText("You Died! Respawning in " + Math.ceil(this.DeadTime) + "s",  Camera.X, Camera.Y);
+    Ctx.translate(Camera.X, Camera.Y);
+    Ctx.rotate(-Camera.Rot);
+    Ctx.fillText("You Died! Respawning in " + Math.ceil(this.DeadTime) + "s", 0, 0);
     Ctx.restore();
   }
 

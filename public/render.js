@@ -25,9 +25,18 @@ AddUpdater((DT) => {
   if (Camera.Tracking) {
     Camera.X += (Camera.Tracking.X - Camera.X) * Camera.TrackingSpeed * DT * 60;
     Camera.Y += (Camera.Tracking.Y - Camera.Y) * Camera.TrackingSpeed * DT * 60;
-    if (Camera.TrackRot)
-      Camera.Rot += ((-Camera.Tracking.Rot - Math.PI / 2) - Camera.Rot) * Camera.TrackingSpeed * DT * 60;
-    else
-      Camera.Rot += ((Math.PI / 2 - Math.PI / 2) - Camera.Rot) * Camera.TrackingSpeed * DT * 60;
+    if (Camera.TrackRot) {
+      let targetRot = -Camera.Tracking.Rot - Math.PI / 2;
+      let diff = targetRot - Camera.Rot;
+      // Normalize angle difference to [-π, π] for shortest path
+      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+      Camera.Rot += diff * Camera.TrackingSpeed * DT * 60;
+    } else {
+      let targetRot = 0;
+      let diff = targetRot - Camera.Rot;
+      // Normalize angle difference to [-π, π] for shortest path
+      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+      Camera.Rot += diff * Camera.TrackingSpeed * DT * 60;
+    }
   }
 });

@@ -26,6 +26,7 @@ class Player {
     this.DeadTime = 0;
     this.LastHitBy = null;
     this.Size = 1;
+    this.IsDev = false;
 
     this.IsClientControlled = false;
   }

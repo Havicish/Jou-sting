@@ -41,6 +41,11 @@ document.addEventListener("DOMContentLoaded", () => {
   Move1Select.value = Move1 || "Dash";
   Move2Select.value = Move2 || "Dash";
   NameInput.value = Name || `Plr${Math.round(Math.random() * 1000)}`;
+  if (NameInput.value == "Chronically Ghostly") {
+    NameInput.nextElementSibling.style.display = "inline";
+  } else {
+    NameInput.nextElementSibling.style.display = "none";
+  }
   CharacterColorInput.value = CharacterColor || "0";
   CharacterColorInput.style.setProperty('--thumb-color', `hsl(${CharacterColorInput.value}, 100%, 50%)`);
 
@@ -69,6 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ThisSession.CallServer("JoinGame", { GameName: document.getElementById("GameName").value }, (Response) => {
         ThisSession.GameName = Response.GameName;
         SetScene("Game");
+        ThisSession.CallServer("CheckDevPassword", { Password: GetCookie("DevPassword") || "" }, () => {});
       });
     } catch (e) {
       alert("Failed to join game: " + e);
@@ -120,10 +126,21 @@ document.addEventListener("DOMContentLoaded", () => {
     Camera.TrackRot = this.checked;
   });
   document.getElementById("CameraFollowRotation").checked = GetCookie("CameraFollowRotation") == true || false;
+  Camera.TrackRot = GetCookie("CameraFollowRotation") == true || false;
 
-  NameInput.addEventListener("input", function() {
+  document.getElementById("NameInput").addEventListener("input", function() {
     SetCookie("Name", this.value);
+    if (this.value == "Chronically Ghostly") {
+      this.nextElementSibling.style.display = "inline";
+    } else {
+      this.nextElementSibling.style.display = "none";
+    }
   });
+
+  document.getElementById("DevPasswordInput").addEventListener("input", function() {
+    SetCookie("DevPassword", this.value);
+  });
+  document.getElementById("DevPasswordInput").value = GetCookie("DevPassword") || "";
 });
 
 let TimeUntilNewUpdate = 0;

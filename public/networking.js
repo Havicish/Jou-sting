@@ -295,6 +295,10 @@ class Session {
       let Indicator = new DamageIndicator(X, Y, Amount);
       AddObject("Game", Indicator);
     }
+
+    if (API == "ForceReload") {
+      window.location.reload();
+    }
   }
 }
 
