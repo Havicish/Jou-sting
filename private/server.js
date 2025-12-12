@@ -100,7 +100,6 @@ function ServerPush(Socket, API, Data) {
 }
 
 AddAPIListener("AcknowledgeServerPush", (Payload, Socket) => {
-  console.log("AcknowledgeServerPush received for API:", Payload.API);
   let API = Payload.API;
   for (let i = 0; i < WaitingForClientGotServerPush.length; i++) {
     let WaitingFor = WaitingForClientGotServerPush[i];

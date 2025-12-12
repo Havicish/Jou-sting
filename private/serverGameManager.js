@@ -203,6 +203,8 @@ function Start() {
       let Plr = Session.Plr;
 
       let Caltrop = new CaltropClass(Plr.X, Plr.Y, Plr.Id);
+      Caltrop.VelX = Plr.VelX;
+      Caltrop.VelY = Plr.VelY;
       ThisGame.Caltrops.push(Caltrop);
 
       for (let Session2 of GetSessions()) {

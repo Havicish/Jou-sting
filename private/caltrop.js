@@ -13,6 +13,8 @@ class Caltrop {
   Update(DT) {
     this.X += this.VelX * DT;
     this.Y += this.VelY * DT;
+    this.VelX /= Math.pow(1.03, DT * 60);
+    this.VelY /= Math.pow(1.03, DT * 60);
 
     this.LifeTime -= DT;
     if (this.LifeTime <= 0) {
