@@ -1,4 +1,5 @@
 import { Ctx } from "../canvasManager.js";
+import { GetAllObjectsInScene } from "../sceneManager.js";
 
 export class Particle {
   constructor() {
@@ -12,6 +13,14 @@ export class Particle {
     this.Size = 2;
     this.Drag = 1.01;
     this.Gravity = 15;
+    this.StartFade = 1;
+    this.BoundingBox = null;
+
+    for (let Obj of GetAllObjectsInScene("Game")) {
+      if (Obj.constructor.name == "BoundingBox") {
+        this.BoundingBox = Obj;
+      }
+    }
   }
 
   SetRandomVelocity(Power) {
@@ -34,9 +43,18 @@ export class Particle {
   }
 
   Render() {
+    if (this.X < this.BoundingBox.X ||
+        this.X > this.BoundingBox.X + this.BoundingBox.Width ||
+        this.Y < this.BoundingBox.Y ||
+        this.Y > this.BoundingBox.Y + this.BoundingBox.Height) {
+      return;
+    }
     Ctx.beginPath();
     Ctx.fillStyle = this.Color;
+    Ctx.save();
+    Ctx.globalAlpha = Math.min(Math.max((this.LifeTime), 0), 1);
     Ctx.arc(this.X, this.Y, this.Size, 0, Math.PI * 2);
     Ctx.fill();
+    Ctx.restore();
   }
 }
