@@ -21,7 +21,7 @@ let LastTime = performance.now();
 function Frame() {
   let DT = (performance.now() - LastTime) / 1000;
   LastTime = performance.now();
-  DT = Math.min(DT, 0.1) * GameState.TimeScale;
+  DT = Math.min(DT, 0.5) * GameState.TimeScale;
 
   let Objects = Scenes[GameState.CurrentScene].Objects;
 

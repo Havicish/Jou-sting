@@ -2,7 +2,7 @@ import { Ctx } from "../canvasManager.js";
 import { MainConsole } from "../consoleManager.js";
 import { ThisSession } from "../networking.js";
 import { RemoveObject, AddObject } from "../sceneManager.js";
-import { Particle } from "./particle.js";
+import { CreateManyParticles, CreateManyParticlesWithRandVelocity, Particle } from "./particle.js";
 
 export class Caltrop {
   constructor() {
@@ -13,6 +13,8 @@ export class Caltrop {
     this.VelX = 0;
     this.VelY = 0;
     this.LifeTime = 10;
+    this.Rot = Math.random() * 2 * Math.PI;
+    this.SpinDir = Math.random() > 0.5 ? 1 : -1;
   }
 
   Update(DT) {
@@ -21,16 +23,17 @@ export class Caltrop {
     this.VelX /= Math.pow(1.03, DT * 60);
     this.VelY /= Math.pow(1.03, DT * 60);
 
+    let Speed = Math.sqrt(this.VelX * this.VelX + this.VelY * this.VelY);
+    this.Rot += DT * Speed / 50 * this.SpinDir;
+
     this.LifeTime -= DT;
     if (this.LifeTime <= 0) {
-      for (let i = 0; i < 10; i++) {
-        let Part = new Particle();
-        Part.X = this.X;
-        Part.Y = this.Y;
-        Part.SetRandomVelocity(50);
-        Part.Color = (this.OwnerId == ThisSession.Id) ? "#00FF00" : "#FF0000";
-        AddObject("Game", Part);
-      }
+      let Part = new Particle();
+      Part.X = this.X;
+      Part.Y = this.Y;
+      Part.Color = (this.OwnerId == ThisSession.Id) ? "#00FF00" : "#FF0000";
+      Part.Gravity = 40;
+      CreateManyParticlesWithRandVelocity(Part, 10, 50, "Game");
       RemoveObject("Game", this);
       return;
     }
@@ -55,7 +58,7 @@ export class Caltrop {
       let Angle = i * Math.PI / 3;
       Ctx.beginPath();
       Ctx.moveTo(0, 0);
-      Ctx.lineTo(Math.cos(Angle) * 24, Math.sin(Angle) * 24);
+      Ctx.lineTo(Math.cos(Angle + this.Rot) * 24, Math.sin(Angle + this.Rot) * 24);
       Ctx.lineWidth = 3;
       Ctx.stroke();
     }

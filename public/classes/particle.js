@@ -1,5 +1,5 @@
 import { Ctx } from "../canvasManager.js";
-import { GetAllObjectsInScene } from "../sceneManager.js";
+import { AddObject, GetAllObjectsInScene } from "../sceneManager.js";
 
 export class Particle {
   constructor() {
@@ -56,5 +56,22 @@ export class Particle {
     Ctx.arc(this.X, this.Y, this.Size, 0, Math.PI * 2);
     Ctx.fill();
     Ctx.restore();
+  }
+}
+
+export function CreateManyParticles(ParticleReference, Amount, Scene) {
+  for (let i = 0; i < Amount; i++) {
+    let NewParticle = new Particle();
+    Object.assign(NewParticle, ParticleReference);
+    AddObject(Scene, NewParticle);
+  }
+}
+
+export function CreateManyParticlesWithRandVelocity(ParticleReference, Amount, Power, Scene) {
+  for (let i = 0; i < Amount; i++) {
+    let NewParticle = new Particle();
+    Object.assign(NewParticle, ParticleReference);
+    NewParticle.SetRandomVelocity(Power);
+    AddObject(Scene, NewParticle);
   }
 }
