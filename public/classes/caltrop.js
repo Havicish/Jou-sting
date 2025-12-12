@@ -1,7 +1,8 @@
 import { Ctx } from "../canvasManager.js";
 import { MainConsole } from "../consoleManager.js";
 import { ThisSession } from "../networking.js";
-import { RemoveObject } from "../sceneManager.js";
+import { RemoveObject, AddObject } from "../sceneManager.js";
+import { Particle } from "./particle.js";
 
 export class Caltrop {
   constructor() {
@@ -22,6 +23,14 @@ export class Caltrop {
 
     this.LifeTime -= DT;
     if (this.LifeTime <= 0) {
+      for (let i = 0; i < 10; i++) {
+        let Part = new Particle();
+        Part.X = this.X;
+        Part.Y = this.Y;
+        Part.SetRandomVelocity(50);
+        Part.Color = (this.OwnerId == ThisSession.Id) ? "#00FF00" : "#FF0000";
+        AddObject("Game", Part);
+      }
       RemoveObject("Game", this);
       return;
     }
