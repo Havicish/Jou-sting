@@ -305,11 +305,43 @@ function Start() {
     }
   });
 
+  AddAPIListener("CheckDevPassword", (Payload, Socket) => {
+    try {
+      let Session = FindSession(Payload.SessionId);
+      if (!Session) return { Success: false, Error: "Session not found" };
+
+      let ThisGame = FindGame(Session.GameName);
+      if (!ThisGame) return { Success: false, Error: "Game not found" };
+
+      if (Payload.Password === "letmein") {
+        Session.Plr.IsDev = true;
+        for (let Session2 of GetSessions()) {
+          if (Session2.GameName != ThisGame.Name || Session2.Id == Session.Id)
+            continue;
+          Session2.Socket.send(JSON.stringify({ 
+            ServerPush: {
+              API: "ServerUpdateSession",
+              Payload: { SessionId: Session.Id, Updates: { IsDev: true } }
+            }
+          }));
+        }
+        return { Success: true, IsDev: true };
+      } else {
+        return { Success: true, IsDev: false };
+      }
+    } catch (err) {
+      console.error(err);
+      return { Success: false, Error: err.message };
+    }
+  });
+
   let LastRecTime = Date.now();
   setInterval(() => {
     let Now = Date.now();
     let DT = (Now - LastRecTime) / 1000;
     LastRecTime = Now;
+
+    console.log(DT);
 
     Games.forEach((Game) => {
       CheckForPlrStabs(Game, DT);

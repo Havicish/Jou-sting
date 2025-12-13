@@ -309,7 +309,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 let PingList = [];
+let TimeUntilNextUpdate = 0;
 AddUpdater((DT) => {
+  TimeUntilNextUpdate -= DT;
+  if (TimeUntilNextUpdate > 0) return;
+  TimeUntilNextUpdate = 1/120;
   if (ThisSession.Socket && ThisSession.Socket.readyState === WebSocket.OPEN) {
     let Updates = {};
 
